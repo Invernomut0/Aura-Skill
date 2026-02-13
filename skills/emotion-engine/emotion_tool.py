@@ -77,7 +77,7 @@ def format_emotion_display(emotions: Dict[str, float], title: str) -> str:
     sorted_emotions = sorted(emotions.items(), key=lambda x: x[1], reverse=True)
 
     for emotion, intensity in sorted_emotions:
-        if intensity > 0.1:  # Only show significant emotions
+        if intensity > 0.01:  # Only show significant emotions (lowered threshold)
             emoji = emotion_emojis.get(emotion, '💭')
             bar_length = int(intensity * 10)
             bar = '█' * bar_length + '░' * (10 - bar_length)
