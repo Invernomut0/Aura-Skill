@@ -1336,9 +1336,43 @@ def start_dashboard_server():
     global dashboard_server_thread
     logger.info("Starting dashboard server...")
 
+    # Kill any existing process on the port
+    try:
+        import subprocess
+        port = WEB_DASHBOARD['port']
+        # Find process using the port
+        result = subprocess.run(['lsof', '-ti', f':{port}'], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    logger.info(f"Killing existing process {pid} on port {port}")
+                    subprocess.run(['kill', '-9', pid.strip()], check=False)
+            # Wait a moment for port to be released
+            import time
+            time.sleep(1)
+    except Exception as e:
+        logger.warning(f"Could not kill existing processes on port {WEB_DASHBOARD['port']}: {e}")
+
     if dashboard_server_thread and dashboard_server_thread.is_alive():
         logger.info("Dashboard server already running")
         return dashboard_server_thread  # Server already running
+
+    # If thread is not alive but port might still be occupied, try to clean up
+    try:
+        import subprocess
+        port = WEB_DASHBOARD['port']
+        result = subprocess.run(['lsof', '-ti', f':{port}'], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            logger.info(f"Port {port} still occupied, cleaning up...")
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    subprocess.run(['kill', '-9', pid.strip()], check=False)
+            import time
+            time.sleep(1)
+    except Exception as e:
+        logger.warning(f"Could not check/clean port {WEB_DASHBOARD['port']}: {e}")
 
     def run_server():
         try:
