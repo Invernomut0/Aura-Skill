@@ -394,7 +394,7 @@ PERSISTENCE_PATHS = {
     "config": "~/.openclaw/emotion_config.json",
     "database": "~/.openclaw/emotional_state.db",
     "backup_dir": "~/.openclaw/emotion_backups/",
-    "logs": "~/.openclaw/emotion_logs.log"
+    "logs": "~/.openclaw/logs/emotion_logs.log"
 }
 
 # Mixed emotion blending system

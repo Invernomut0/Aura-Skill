@@ -1075,6 +1075,31 @@ vim ~/.openclaw/emotion_config.json
 
 ### Advanced Diagnostics
 
+#### Logging Configuration
+
+The system automatically creates logs in `~/.openclaw/logs/emotion_logs.log`. The logging level can be controlled by setting the environment variable:
+
+```bash
+# Enable debug logging
+export EMOTION_LOG_LEVEL=DEBUG
+
+# Enable only error logging
+export EMOTION_LOG_LEVEL=ERROR
+```
+
+Log files are automatically rotated when they exceed 10MB.
+
+#### Test Logging
+
+```bash
+# Test that logging is working
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions > /dev/null
+tail -5 ~/.openclaw/logs/emotion_logs.log
+
+# Check log file permissions
+ls -la ~/.openclaw/logs/emotion_logs.log
+```
+
 #### Log Analysis
 
 ```bash
@@ -1085,7 +1110,7 @@ tail -f ~/.openclaw/logs/emotion_logs.log
 grep ERROR ~/.openclaw/logs/emotion_logs.log
 
 # Performance metrics
-grep PERFORMANCE ~/.openclaw/logs/emotion_logs.log
+grep "Updating emotions" ~/.openclaw/logs/emotion_logs.log
 ```
 
 #### Health Check

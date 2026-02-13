@@ -7,6 +7,7 @@ This file handles all slash commands for the emotional intelligence system.
 import sys
 import json
 import os
+import logging
 from typing import Dict, Any, List, Tuple
 import argparse
 import random
@@ -15,6 +16,25 @@ import threading
 import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
+
+# Ensure logs directory exists
+logs_dir = os.path.expanduser("~/.openclaw/logs")
+os.makedirs(logs_dir, exist_ok=True)
+
+# Configure logging
+log_file = os.path.join(logs_dir, "emotion_logs.log")
+log_level = os.getenv('EMOTION_LOG_LEVEL', 'INFO').upper()
+numeric_level = getattr(logging, log_level, logging.INFO)
+
+logging.basicConfig(
+    level=numeric_level,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger('emotion_engine')
 
 # Global emotion engine instance for state persistence
 _global_emotion_engine = None
@@ -33,6 +53,8 @@ def update_emotions_from_interaction(command: str, args: List[str], result_succe
     """Update emotional state based on user interaction."""
     if not EMOTION_ENGINE_AVAILABLE:
         return
+
+    logger.info(f"Updating emotions from interaction: command='{command}', args={args}, success={result_success}")
 
     engine = get_emotion_engine()
     if engine is None:
@@ -205,6 +227,9 @@ def format_personality(traits: Dict[str, float]) -> str:
 def handle_emotions_command(args: List[str]) -> str:
     """Handle the main /emotions command."""
     try:
+        logger.info(f"Processing emotions command with args: {args}")
+        logger.debug(f"Detailed args processing: original_args={args}")
+
         # Parse arguments to handle different calling conventions
         # OpenClaw might pass: ['/emotions', 'dashboard'] or just ['dashboard']
         original_args = args.copy()
@@ -941,17 +966,21 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 def start_dashboard_server():
     """Start the dashboard web server in a background thread."""
     global dashboard_server_thread
+    logger.info("Starting dashboard server...")
 
     if dashboard_server_thread and dashboard_server_thread.is_alive():
+        logger.info("Dashboard server already running")
         return dashboard_server_thread  # Server already running
 
     def run_server():
         try:
             print(f"Starting server on {WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
             with socketserver.TCPServer((WEB_DASHBOARD['host'], WEB_DASHBOARD['port']), DashboardHTTPRequestHandler) as httpd:
+                logger.info(f"Dashboard server started successfully at http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
                 print(f"🌐 Dashboard server started at http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
                 httpd.serve_forever()
         except Exception as e:
+            logger.error(f"Failed to start dashboard server: {e}")
             print(f"❌ Failed to start dashboard server: {e}")
             import traceback
             traceback.print_exc()
@@ -998,6 +1027,8 @@ def generate_dashboard_data() -> Dict[str, Any]:
 
 def main():
     """Main entry point for the emotion-engine skill."""
+    logger.info(f"Emotion engine started with command: {sys.argv}")
+
     parser = argparse.ArgumentParser(description='OpenClaw Emotional Intelligence System')
     parser.add_argument('command', help='Command or subcommand to execute')
     parser.add_argument('args', nargs='*', help='Command arguments')
