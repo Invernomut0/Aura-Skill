@@ -16,8 +16,46 @@ import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
 
-# Global state for dashboard server
-dashboard_server_thread = None
+# Global emotion engine instance for state persistence
+_global_emotion_engine = None
+
+def get_emotion_engine():
+    """Get or create the global emotion engine instance."""
+    global _global_emotion_engine
+    if _global_emotion_engine is None and EMOTION_ENGINE_AVAILABLE:
+        _global_emotion_engine = EmotionEngine()
+    return _global_emotion_engine
+
+def update_emotions_from_interaction(command: str, args: List[str], result_success: bool = True):
+    """Update emotional state based on user interaction."""
+    if not EMOTION_ENGINE_AVAILABLE:
+        return
+
+    engine = get_emotion_engine()
+    if engine is None:
+        return
+
+    # Create interaction data based on command type
+    interaction_data = {
+        "command": command,
+        "args": args,
+        "timestamp": datetime.now().isoformat(),
+        "success": result_success,
+        "context": {
+            "command_type": "query" if command in ["", "detailed", "history", "personality", "triggers"] else "action",
+            "complexity": len(args),
+            "emotional_context": "curious" if "detailed" in args else "neutral"
+        }
+    }
+
+    try:
+        # Update emotional state
+        engine.update_emotional_state(interaction_data)
+    except Exception as e:
+        # Don't let emotion updates break the command
+        print(f"Warning: Failed to update emotions: {e}")
+        import traceback
+        traceback.print_exc()
 
 # Import constants first (always available)
 from config.emotional_constants import (
@@ -130,6 +168,7 @@ def handle_emotions_command(args: List[str]) -> str:
     try:
         # Parse arguments to handle different calling conventions
         # OpenClaw might pass: ['/emotions', 'dashboard'] or just ['dashboard']
+        original_args = args.copy()
         if len(args) > 0 and args[0].startswith('/emotions'):
             # Remove the command prefix if present
             args = args[1:] if len(args) > 1 else []
@@ -153,18 +192,28 @@ def handle_emotions_command(args: List[str]) -> str:
                 output.append("")
                 output.append("Open the URL above in your browser to view the dashboard.")
 
+                # Update emotions for dashboard interaction
+                update_emotions_from_interaction("dashboard", original_args, True)
                 return '\n'.join(output)
             except Exception as e:
+                update_emotions_from_interaction("dashboard", original_args, False)
                 return f"❌ Failed to start dashboard server: {str(e)}"
 
         # Version command doesn't need the engine
         if len(args) > 0 and args[0] == 'version':
-            return f"🎭 Emotion Engine Skill v{get_skill_version()}"
+            result = f"🎭 Emotion Engine Skill v{get_skill_version()}"
+            update_emotions_from_interaction("version", original_args, True)
+            return result
 
         if not EMOTION_ENGINE_AVAILABLE:
             return "❌ Emotion engine not available. Please install required dependencies (numpy) and ensure the emotion_ml_engine module is accessible."
 
-        engine = EmotionEngine()
+        # Use global engine instance for state persistence
+        engine = get_emotion_engine()
+        if engine is None:
+            return "❌ Failed to initialize emotion engine."
+
+        command_type = args[0] if args else "status"
 
         if len(args) == 0:
             # Show current emotional state
@@ -191,7 +240,9 @@ def handle_emotions_command(args: List[str]) -> str:
             output.append(f"  Total Intensity: {state['overall_intensity']['total']:.2f}")
             output.append(f"  Session ID: {state['session_id']}")
 
-            return '\n'.join(output)
+            result = '\n'.join(output)
+            update_emotions_from_interaction(command_type, original_args, True)
+            return result
 
         elif args[0] == 'detailed':
             # Detailed view
@@ -210,10 +261,13 @@ def handle_emotions_command(args: List[str]) -> str:
             output.append(f"  Learning Episodes: {ml_state['learning_episodes']}")
             output.append(f"  Prediction Accuracy: {ml_state['prediction_accuracy']:.2f}")
 
-            return '\n'.join(output)
+            result = '\n'.join(output)
+            update_emotions_from_interaction(command_type, original_args, True)
+            return result
 
         elif args[0] == 'history':
             # Show emotional history
+            update_emotions_from_interaction(command_type, original_args, True)
             limit = int(args[1]) if len(args) > 1 else 10
             history = engine.get_emotion_history(limit)
 
@@ -249,6 +303,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'personality':
             # Show personality traits
+            update_emotions_from_interaction(command_type, original_args, True)
             state = engine.get_emotional_state()
             output = ["👤 Personality Analysis", "=" * 25]
             output.append(format_personality(state['personality_traits']))
@@ -268,6 +323,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'metacognition':
             # Meta-cognitive analysis
+            update_emotions_from_interaction(command_type, original_args, True)
             analysis = engine.get_metacognitive_analysis()
 
             output = ["🧠 Meta-Cognitive Analysis", "=" * 30]
@@ -289,6 +345,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'predict':
             # Predict emotional trajectory
+            update_emotions_from_interaction(command_type, original_args, True)
             horizon = int(args[1]) if len(args) > 1 else 30
             prediction = engine.predict_emotional_trajectory(horizon)
 
@@ -307,6 +364,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'introspect':
             # Trigger introspection
+            update_emotions_from_interaction(command_type, original_args, True)
             depth = int(args[1]) if len(args) > 1 else 1
             introspection = engine.trigger_introspection(depth)
 
@@ -322,6 +380,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'reset':
             # Reset emotional state
+            update_emotions_from_interaction(command_type, original_args, True)
             preserve_learning = len(args) > 1 and args[1] == 'preserve-learning'
             result = engine.reset_emotions(preserve_learning)
 
@@ -334,6 +393,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'export':
             # Export emotional intelligence data
+            update_emotions_from_interaction(command_type, original_args, True)
             export_data = engine.export_emotional_intelligence()
 
             # Write to file
@@ -351,6 +411,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'config':
             # Show configuration
+            update_emotions_from_interaction(command_type, original_args, True)
             config_path = os.path.expanduser('~/.openclaw/emotion_config.json')
 
             if os.path.exists(config_path):
@@ -371,6 +432,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'version':
             # Show version information
+            update_emotions_from_interaction(command_type, original_args, True)
             version = get_skill_version()
             output = ["📦 Emotion Engine Version Information", "=" * 40]
             output.append(f"Current Version: {version}")
@@ -388,6 +450,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'blend':
             # Blend emotions
+            update_emotions_from_interaction(command_type, original_args, True)
             if len(args) < 3:
                 return "❌ Usage: /emotions blend <emotion1> <emotion2> [intensity1] [intensity2]"
 
@@ -410,6 +473,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'memory':
             # Long-term memory analysis
+            update_emotions_from_interaction(command_type, original_args, True)
             days = int(args[1]) if len(args) > 1 else 30
 
             # Mock memory data - in real implementation, this would come from persistent storage
@@ -433,6 +497,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
         elif args[0] == 'correlations':
             # Performance correlations
+            update_emotions_from_interaction(command_type, original_args, True)
             output = ["📊 Performance Correlations", "=" * 30]
 
             # Show correlations for current emotions (mock data)
@@ -453,6 +518,8 @@ def handle_emotions_command(args: List[str]) -> str:
             return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
 
     except Exception as e:
+        # Update emotions for failed command execution
+        update_emotions_from_interaction(command_type, original_args, False)
         return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."
 
 
