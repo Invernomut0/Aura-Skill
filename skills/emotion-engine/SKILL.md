@@ -229,7 +229,7 @@ Quantitative analysis of how emotions impact system performance:
 ### Web Dashboard for Monitoring
 Interactive web interface served locally by the emotion-engine:
 
-- **Local Web Server**: Automatically starts at `http://localhost:8081` when `/emotions dashboard` is called
+- **Local Web Server**: Automatically starts at `http://localhost:8081` when `/emotions dashboard` is called, featuring interactive charts and advanced analytics
 - **Live Visualizations**: Real-time charts and graphs of emotional states
 - **Comprehensive Analytics**: Timeline views, correlation graphs, memory patterns
 - **API Endpoints**: RESTful APIs for programmatic access to emotional data

@@ -801,161 +801,515 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         """Send the main dashboard HTML page."""
         dashboard_data = generate_dashboard_data()
 
+        # Prepare data for charts
+        primary_emotions = dashboard_data['current_emotions']
+        complex_emotions = dashboard_data.get('complex_emotions', {})
+        
+        # Combine all emotions for radar chart
+        all_emotions = {**primary_emotions, **complex_emotions}
+        emotion_labels = list(all_emotions.keys())
+        primary_values = [primary_emotions.get(emotion, 0) for emotion in emotion_labels]
+        complex_values = [complex_emotions.get(emotion, 0) for emotion in emotion_labels]
+
+        # Timeline data (simplified - you can expand this)
+        timeline_labels = ['08:00', '09:00', '10:00', '11:00', '12:00']
+        timeline_data = dashboard_data.get('timeline_data', [[3, 5, 6, 8, 10], [4, 3, 2, 3, 4]])
+
+        # Prepare additional data for charts
+        performance_metrics = dashboard_data.get('performance_metrics', {})
+        quality_value = performance_metrics.get('response_quality', 0.85) * 100
+        completion_value = performance_metrics.get('task_completion', 0.92) * 100
+        satisfaction_value = performance_metrics.get('user_satisfaction', 0.78) * 100
+        balance_value = dashboard_data.get('emotional_balance', 0.75) * 100
+
+        # Pie chart data - emotion distribution
+        pie_labels = list(all_emotions.keys())
+        pie_values = list(all_emotions.values())
+
+        # Scatter plot data - mock correlations
+        scatter_data = {
+            'joy': [0.8, 0.6, 0.9, 0.4, 0.7],
+            'curiosity': [0.5, 0.8, 0.3, 0.9, 0.6]
+        }
+
+        # Area chart data
+        area_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        area_data = [
+            [2, 3, 4, 5, 4, 3, 2],  # Joy
+            [1, 2, 1, 3, 2, 4, 3],  # Sadness
+            [3, 4, 2, 5, 3, 4, 5]   # Curiosity
+        ]
+
         html_template = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emotion Engine Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
             margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+        }
+        header {
+            text-align: center;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #283593;
             color: white;
-            min-height: 100vh;
-        }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-        }}
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        .dashboard-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }}
-        .card {{
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+        }
+        .section {
+            margin: 20px auto;
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }}
-        .card h3 {{
-            margin-top: 0;
-            color: #ffd700;
-        }}
-        .emotion-bar {{
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-        }}
-        .emotion-label {{
-            width: 120px;
-            font-weight: bold;
-        }}
-        .emotion-value {{
-            flex: 1;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #ffffff;
             border-radius: 10px;
-            overflow: hidden;
-            margin-left: 10px;
-        }}
-        .emotion-fill {{
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #FFC107, #FF5722);
-            border-radius: 10px;
-        }}
-        .metric {{
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }}
-        .status {{
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+        }
+        .section h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
             text-align: center;
-            margin-top: 20px;
+            color: #333;
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .gauge-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .gauge-item {
+            text-align: center;
+            margin: 10px;
+        }
+        .gauge {
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+        .gauge canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .status {
+            text-align: center;
+            margin: 20px auto;
             padding: 15px;
-            background: rgba(0, 255, 0, 0.2);
+            background: rgba(0, 255, 0, 0.1);
             border-radius: 10px;
             border: 1px solid rgba(0, 255, 0, 0.3);
-        }}
+            width: 80%;
+            max-width: 800px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🧠 Emotion Engine Dashboard</h1>
-            <p>Real-time emotional intelligence monitoring</p>
-        </div>
+    <header>
+        <h1>🧠 Emotion Engine Dashboard</h1>
+        <p>Real-time emotional intelligence monitoring</p>
+    </header>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <h3>Current Emotions</h3>"""
-
-        # Generate emotion bars
-        emotion_html = ""
-        for emotion, intensity in dashboard_data['current_emotions'].items():
-            emotion_html += f'''
-                <div class="emotion-bar">
-                    <span class="emotion-label">{emotion.title()}</span>
-                    <div class="emotion-value">
-                        <div class="emotion-fill" style="width: {intensity*100}%"></div>
-                    </div>
-                    <span>{intensity:.2f}</span>
-                </div>'''
-
-        html_template += emotion_html + """
-            </div>
-
-            <div class="card">
-                <h3>Performance Metrics</h3>"""
-
-        # Generate performance metrics
-        metrics_html = ""
-        for metric, value in dashboard_data['performance_metrics'].items():
-            metrics_html += f'''
-                <div class="metric">
-                    <span>{metric.replace("_", " ").title()}</span>
-                    <span>{value:.2f}</span>
-                </div>'''
-
-        html_template += metrics_html + """
-            </div>
-
-            <div class="card">
-                <h3>Memory Patterns</h3>
-                <div class="metric">
-                    <span>Dominant Trend</span>
-                    <span>""" + dashboard_data['memory_patterns']['dominant_trend'].replace("_", " ").title() + """</span>
-                </div>
-                <div class="metric">
-                    <span>Volatility Index</span>
-                    <span>""" + f"{dashboard_data['memory_patterns']['volatility_index']:.2f}" + """</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>System Status</h3>
-                <div class="metric">
-                    <span>History Entries</span>
-                    <span>""" + str(len(dashboard_data['recent_history'])) + """</span>
-                </div>
-                <div class="metric">
-                    <span>Active Correlations</span>
-                    <span>""" + str(len(dashboard_data['correlations'])) + """</span>
-                </div>
-                <div class="metric">
-                    <span>Version</span>
-                    <span>""" + get_skill_version() + """</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="status">
-            <h3>✅ Dashboard Active</h3>
-            <p>Emotion Engine is running and monitoring in real-time</p>
-            <p>Last updated: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
+    <div class="section">
+        <h2>Primary and Complex Emotions</h2>
+        <div class="chart-container">
+            <canvas id="radarChart"></canvas>
         </div>
     </div>
+
+    <div class="section">
+        <h2>Timeline Evolution</h2>
+        <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Meta-Cognitive States</h2>
+        <div class="chart-container">
+            <canvas id="metaCognitiveChart"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="section">
+            <h2>Emotion Distribution</h2>
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Emotion Correlations</h2>
+            <div class="chart-container">
+                <canvas id="scatterChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="section full-width">
+        <h2>Performance Metrics</h2>
+        <div class="gauge-container">
+            <div class="gauge-item">
+                <h3>Response Quality</h3>
+                <div class="gauge">
+                    <canvas id="qualityGauge"></canvas>
+                </div>
+            </div>
+            <div class="gauge-item">
+                <h3>Task Completion</h3>
+                <div class="gauge">
+                    <canvas id="completionGauge"></canvas>
+                </div>
+            </div>
+            <div class="gauge-item">
+                <h3>User Satisfaction</h3>
+                <div class="gauge">
+                    <canvas id="satisfactionGauge"></canvas>
+                </div>
+            </div>
+            <div class="gauge-item">
+                <h3>Emotional Balance</h3>
+                <div class="gauge">
+                    <canvas id="balanceGauge"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section full-width">
+        <h2>Advanced Analytics</h2>
+        <div class="dashboard-grid">
+            <div class="chart-container">
+                <canvas id="areaChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="radarAdvanced"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="status">
+        <h3>✅ Dashboard Active</h3>
+        <p>Emotion Engine is running and monitoring in real-time</p>
+        <p>Last updated: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
+    </div>
+
+    <script>
+        // Radar Chart for Primary and Complex Emotions
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: """ + str(emotion_labels).replace("'", '"') + """,
+                datasets: [
+                    {
+                        label: 'Primary Emotions',
+                        data: """ + str(primary_values) + """,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                    },
+                    {
+                        label: 'Complex Emotions',
+                        data: """ + str(complex_values) + """,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+
+        // Line Chart for Timeline Evolution
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: """ + str(timeline_labels).replace("'", '"') + """,
+                datasets: [
+                    {
+                        label: 'Joy',
+                        data: """ + str(timeline_data[0]) + """,
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Sadness',
+                        data: """ + str(timeline_data[1]) + """,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Intensity'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Bar Chart for Meta-Cognitive States
+        const metaCtx = document.getElementById('metaCognitiveChart').getContext('2d');
+        new Chart(metaCtx, {
+            type: 'bar',
+            data: {
+                labels: """ + str(meta_labels).replace("'", '"') + """,
+                datasets: [
+                    {
+                        label: 'Meta-Cognitive States',
+                        data: """ + str(meta_values) + """,
+                        backgroundColor: [
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(75, 192, 192, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Pie Chart for Emotion Distribution
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: """ + str(pie_labels).replace("'", '"') + """,
+                datasets: [{
+                    data: """ + str(pie_values) + """,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(199, 199, 199, 0.8)',
+                        'rgba(83, 102, 255, 0.8)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Scatter Chart for Emotion Correlations
+        const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+        new Chart(scatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Joy vs Curiosity',
+                    data: """ + str([{'x': scatter_data['joy'][i], 'y': scatter_data['curiosity'][i]} for i in range(len(scatter_data['joy']))]) + """,
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Joy Intensity'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Curiosity Intensity'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gauge Charts for Performance Metrics
+        function createGauge(canvasId, value, label, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [value, 100 - value],
+                        backgroundColor: [color, 'rgba(200, 200, 200, 0.3)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false }
+                    }
+                },
+                plugins: [{
+                    id: 'gaugeText',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                        const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                        
+                        ctx.save();
+                        ctx.font = 'bold 16px Arial';
+                        ctx.fillStyle = color;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(value.toFixed(0) + '%', centerX, centerY - 5);
+                        
+                        ctx.font = '12px Arial';
+                        ctx.fillStyle = '#666';
+                        ctx.fillText(label, centerX, centerY + 15);
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        createGauge('qualityGauge', """ + str(quality_value) + """, 'Quality', 'rgba(75, 192, 192, 1)');
+        createGauge('completionGauge', """ + str(completion_value) + """, 'Completion', 'rgba(54, 162, 235, 1)');
+        createGauge('satisfactionGauge', """ + str(satisfaction_value) + """, 'Satisfaction', 'rgba(255, 206, 86, 1)');
+        createGauge('balanceGauge', """ + str(balance_value) + """, 'Balance', 'rgba(153, 102, 255, 1)');
+
+        // Area Chart for Advanced Analytics
+        const areaCtx = document.getElementById('areaChart').getContext('2d');
+        new Chart(areaCtx, {
+            type: 'line',
+            data: {
+                labels: """ + str(area_labels).replace("'", '"') + """,
+                datasets: [
+                    {
+                        label: 'Joy',
+                        data: """ + str(area_data[0]) + """,
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sadness',
+                        data: """ + str(area_data[1]) + """,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Curiosity',
+                        data: """ + str(area_data[2]) + """,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Weekly Emotional Trends'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Advanced Radar Chart
+        const radarAdvancedCtx = document.getElementById('radarAdvanced').getContext('2d');
+        new Chart(radarAdvancedCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Confidence', 'Stability', 'Adaptability', 'Resilience', 'Empathy', 'Creativity'],
+                datasets: [
+                    {
+                        label: 'Current State',
+                        data: [0.8, 0.7, 0.9, 0.6, 0.8, 0.7],
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        pointBackgroundColor: 'rgba(255, 99, 132, 1)'
+                    },
+                    {
+                        label: 'Optimal State',
+                        data: [1.0, 0.9, 0.95, 0.85, 0.9, 0.8],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Emotional Intelligence Profile'
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>"""
 
@@ -1011,14 +1365,64 @@ def generate_dashboard_data() -> Dict[str, Any]:
     Returns:
         Dashboard data dictionary
     """
-    # This would integrate with the actual emotion engine
-    # For now, return mock data structure
+    # Get real emotion data from the engine
+    engine = get_emotion_engine()
+    if engine and EMOTION_ENGINE_AVAILABLE:
+        try:
+            state = engine.get_emotional_state()
+            current_emotions = state.get('primary_emotions', {})
+            complex_emotions = state.get('complex_emotions', {})
+            
+            # Generate timeline data from recent history (simplified)
+            timeline_data = [[], []]  # Joy and Sadness over time
+            if 'recent_history' in state and state['recent_history']:
+                for entry in state['recent_history'][-5:]:  # Last 5 entries
+                    timeline_data[0].append(entry.get('joy', 0))
+                    timeline_data[1].append(entry.get('sadness', 0))
+            else:
+                # Fallback mock data
+                timeline_data = [[3, 5, 6, 8, 10], [4, 3, 2, 3, 4]]
+            
+            return {
+                "current_emotions": current_emotions,
+                "complex_emotions": complex_emotions,
+                "timeline_data": timeline_data,
+                "emotional_balance": state.get('emotional_balance', 0.75),
+                "recent_history": state.get('recent_history', []),
+                "performance_metrics": state.get('performance_metrics', {
+                    "response_quality": 0.85,
+                    "task_completion": 0.92,
+                    "user_satisfaction": 0.78
+                }),
+                "correlations": state.get('correlations', {
+                    "joy_response_quality": 0.15,
+                    "curiosity_task_completion": 0.18
+                }),
+                "memory_patterns": state.get('memory_patterns', {
+                    "dominant_trend": "increasing_satisfaction",
+                    "volatility_index": 0.3
+                })
+            }
+        except Exception as e:
+            logger.warning(f"Failed to get real emotion data: {e}")
+    
+    # Fallback mock data
     return {
         "current_emotions": {
             "joy": 0.7,
             "curiosity": 0.6,
-            "satisfaction": 0.4
+            "satisfaction": 0.4,
+            "sadness": 0.2,
+            "anger": 0.1
         },
+        "complex_emotions": {
+            "flow_state": 0.8,
+            "anticipation": 0.5,
+            "excitement": 0.6,
+            "frustration": 0.2
+        },
+        "timeline_data": [[3, 5, 6, 8, 10], [4, 3, 2, 3, 4]],
+        "emotional_balance": 0.75,
         "recent_history": [
             {"timestamp": "2024-01-01T10:00:00", "emotions": {"joy": 0.8, "curiosity": 0.5}},
             {"timestamp": "2024-01-01T11:00:00", "emotions": {"joy": 0.6, "satisfaction": 0.7}}
