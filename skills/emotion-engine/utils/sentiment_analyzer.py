@@ -316,21 +316,30 @@ class AdvancedSentimentAnalyzer:
                          behavioral: Dict, performance: Dict, pattern: Dict) -> Dict:
         """Combine all analysis results into final sentiment."""
 
-        # Base emotions from linguistic analysis
-        emotions = defaultdict(float)
-        emotions.update(linguistic["emotion_scores"])
+        # Initialize with ALL primary emotions at base level
+        # This ensures all emotions are always present in the result
+        from config.emotional_constants import PRIMARY_EMOTIONS
+        emotions = {emotion: 0.0 for emotion in PRIMARY_EMOTIONS.keys()}
+        
+        # Add base emotions from linguistic analysis
+        for emotion, score in linguistic["emotion_scores"].items():
+            if emotion in emotions:
+                emotions[emotion] += score
 
         # Apply contextual modifiers
         for emotion, modifier in contextual["emotion_modifiers"].items():
-            emotions[emotion] += modifier
+            if emotion in emotions:
+                emotions[emotion] += modifier
 
         # Add behavioral emotions
         for emotion, score in behavioral["behavioral_emotions"].items():
-            emotions[emotion] += score
+            if emotion in emotions:
+                emotions[emotion] += score
 
         # Add predicted emotions from patterns
         for emotion, score in pattern["predicted_emotions"].items():
-            emotions[emotion] += score * 0.5  # Lower weight for predictions
+            if emotion in emotions:
+                emotions[emotion] += score * 0.5  # Lower weight for predictions
 
         # Calculate overall sentiment
         overall_sentiment = linguistic["sentiment_score"]

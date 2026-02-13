@@ -219,7 +219,7 @@ DEFAULT_CONFIG = {
     "volatility": 0.4,
     "meta_cognition_enabled": True,
     "introspection_frequency": 0.3,  # Probability of meta-cognitive reflections
-    "emotion_decay_rate": 0.1,  # Emotion decay rate per timestep
+    "emotion_decay_rate": 0.02,  # Emotion decay rate per timestep (reduced from 0.1 to maintain diversity)
     "memory_depth": 100,  # Number of interactions to remember
     "confidence_threshold": 0.6,  # Minimum threshold for emotional expression
     "ml_update_frequency": 5,  # Update ML every N interactions

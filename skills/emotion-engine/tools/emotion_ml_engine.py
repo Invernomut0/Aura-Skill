@@ -74,8 +74,22 @@ class EmotionEngine:
 
     def _initialize_emotional_state(self) -> Dict:
         """Initialize emotional state with default values."""
+        # First initialize personality traits
+        personality_traits = {
+            trait: data["default"] for trait, data in PERSONALITY_TRAITS.items()
+        }
+        
+        # Temporarily set personality to calculate baselines
+        temp_state = {"personality_traits": personality_traits}
+        self.emotional_state = temp_state
+        
+        # Initialize primary emotions with personalized baselines
+        primary_emotions = {}
+        for emotion in PRIMARY_EMOTIONS.keys():
+            primary_emotions[emotion] = self._get_emotion_baseline(emotion)
+        
         return {
-            "primary_emotions": {emotion: 0.1 for emotion in PRIMARY_EMOTIONS.keys()},
+            "primary_emotions": primary_emotions,
             "complex_emotions": {emotion: 0.05 for emotion in COMPLEX_EMOTIONS.keys()},
             "emotional_memory": {
                 "recent_interactions": [],
@@ -85,9 +99,7 @@ class EmotionEngine:
                 "successful_approaches": {},
                 "failed_approaches": {}
             },
-            "personality_traits": {
-                trait: data["default"] for trait, data in PERSONALITY_TRAITS.items()
-            },
+            "personality_traits": personality_traits,
             "ml_state": {
                 "pattern_recognition_confidence": 0.5,
                 "adaptation_rate": 0.5,
@@ -107,6 +119,29 @@ class EmotionEngine:
     def _generate_session_id(self) -> str:
         """Generate unique session ID."""
         return datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(random.randint(1000, 9999))
+
+    def _get_emotion_baseline(self, emotion: str) -> float:
+        """
+        Calculate personalized baseline for each emotion based on personality traits.
+        This ensures emotions have natural variability based on the AI's personality.
+        """
+        personality = self.emotional_state["personality_traits"]
+        
+        # Map emotions to personality-influenced baselines
+        emotion_personality_map = {
+            "joy": 0.05 + (personality["extraversion"] * 0.08) + (personality["openness"] * 0.05),
+            "sadness": 0.05 + (personality["neuroticism"] * 0.08) - (personality["extraversion"] * 0.03),
+            "anger": 0.05 + (personality["neuroticism"] * 0.06) - (personality["agreeableness"] * 0.04),
+            "fear": 0.05 + (personality["neuroticism"] * 0.08) - (personality["conscientiousness"] * 0.02),
+            "surprise": 0.05 + (personality["openness"] * 0.06) + (personality["curiosity_drive"] * 0.04),
+            "disgust": 0.05 + (personality["perfectionism"] * 0.05) - (personality["agreeableness"] * 0.02),
+            "curiosity": 0.05 + (personality["curiosity_drive"] * 0.15) + (personality["openness"] * 0.08),
+            "trust": 0.05 + (personality["agreeableness"] * 0.08) + (personality["extraversion"] * 0.04)
+        }
+        
+        # Return personalized baseline, ensuring it stays in reasonable range
+        baseline = emotion_personality_map.get(emotion, 0.10)
+        return max(0.05, min(0.20, baseline))
 
     def _ensure_database(self):
         """Ensure SQLite database exists with proper schema."""
@@ -378,14 +413,15 @@ class EmotionEngine:
         return emotions
 
     def _apply_emotion_decay(self):
-        """Apply natural decay to emotions over time."""
+        """Apply natural decay to emotions over time towards personalized baselines."""
         decay_rate = self.config["emotion_decay_rate"]
 
-        # Apply decay to primary emotions
+        # Apply decay to primary emotions with personalized baselines
         for emotion in self.emotional_state["primary_emotions"]:
             current = self.emotional_state["primary_emotions"][emotion]
-            # Decay towards baseline (0.1 for primary emotions)
-            baseline = 0.1
+            # Get personalized baseline for this emotion
+            baseline = self._get_emotion_baseline(emotion)
+            # Decay towards personalized baseline
             decay = (current - baseline) * decay_rate
             self.emotional_state["primary_emotions"][emotion] = current - decay
 
