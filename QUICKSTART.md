@@ -87,6 +87,36 @@ python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions
 └── logs/                        # System logs
 ```
 
+## Python Dependencies
+
+The installer automatically installs required Python packages:
+
+### Core Dependencies
+- `numpy>=1.20.0` - Required for ML features
+
+### Multilingual Support (Optional)
+- `deep-translator>=1.11.0` - Auto-translation
+- `langdetect>=1.0.9` - Language detection
+
+**Manual installation** (if needed):
+```bash
+pip install -r ~/.openclaw/skills/emotion-engine/requirements.txt
+```
+
+### 🌍 Multilingual Support
+
+Write in **any language** - the system automatically translates:
+```bash
+/emotions "Sono molto felice!"        # Italian
+/emotions "Estoy emocionado"          # Spanish
+/emotions "Je suis curieux"           # French
+```
+
+Test multilingual support:
+```bash
+python3 ~/.openclaw/skills/emotion-engine/test_multilingual.py
+```
+
 ## Applied Fixes (v5)
 
 ### 1. Plugin Structure ✅

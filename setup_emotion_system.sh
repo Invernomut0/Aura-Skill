@@ -56,6 +56,24 @@ else
     echo "❌ OpenClaw configuration missing"
 fi
 
+# Check Python dependencies
+echo "🐍 Checking Python dependencies..."
+if command -v python3 &> /dev/null; then
+    if python3 -c "import numpy" 2>/dev/null; then
+        echo "✅ numpy installed"
+    else
+        echo "⚠️  numpy missing - install with: pip install numpy"
+    fi
+    
+    if python3 -c "import deep_translator" 2>/dev/null; then
+        echo "✅ Multilingual support available (deep-translator)"
+    else
+        echo "💡 Optional: Install multilingual support with: pip install deep-translator langdetect"
+    fi
+else
+    echo "⚠️  Python3 not found"
+fi
+
 # Install Node.js dependencies (if available)
 echo "📦 Installing dependencies..."
 if command -v npm &> /dev/null; then
@@ -80,10 +98,16 @@ echo "  • /emotions metacognition - Meta-cognitive analysis"
 echo "  • /emotions predict      - Predict emotional trajectory"
 echo "  • /emotions config       - Show configuration"
 echo ""
+echo "💡 Multilingual Support: Write in any language (IT, ES, FR, DE, etc.)"
+echo "   The system automatically translates for emotion analysis."
+echo ""
 echo "The system is now ready to use. It will learn and adapt through interactions."
 echo ""
 echo "To test the system:"
 echo "  python3 skills/emotion-engine/emotion_tool.py emotions"
+echo ""
+echo "To test multilingual support:"
+echo "  python3 skills/emotion-engine/test_multilingual.py"
 echo ""
 echo "Logs will be written to: ~/.openclaw/logs/"
 echo "Database location: ~/.openclaw/emotional_state.db"

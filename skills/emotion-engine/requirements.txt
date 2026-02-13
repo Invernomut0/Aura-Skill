@@ -1,0 +1,16 @@
+# Emotion Engine - Required Dependencies
+
+# Core ML and Numerical Computing
+numpy>=1.20.0
+
+# Multilingual Support (Optional but recommended)
+# Install with: pip install -r requirements.txt
+deep-translator>=1.11.0   # Auto-translation for multilingual emotion analysis
+langdetect>=1.0.9         # Automatic language detection
+
+# Optional: Enhanced translation quality
+# googletrans==4.0.0-rc1  # Alternative translator (more accurate but slower)
+
+# Note: The emotion engine works without multilingual support,
+# but translation libraries enable automatic support for any language.
+# Without these libraries, only English text will be properly analyzed.

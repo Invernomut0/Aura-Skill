@@ -8,7 +8,14 @@ import math
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime, timedelta
-
+# Multilingual support
+try:
+    from deep_translator import GoogleTranslator
+    from langdetect import detect, LangDetectException
+    TRANSLATION_AVAILABLE = True
+except ImportError:
+    TRANSLATION_AVAILABLE = False
+    print("Warning: Translation libraries not available. Install: pip install deep-translator langdetect")
 class AdvancedSentimentAnalyzer:
     """
     Multi-level sentiment analysis system that combines:
@@ -25,25 +32,67 @@ class AdvancedSentimentAnalyzer:
         self.context_patterns = self._build_context_patterns()
         self.behavioral_indicators = self._build_behavioral_indicators()
         self.history = []
+        
+        # Initialize translator if available
+        if TRANSLATION_AVAILABLE:
+            self.translator = GoogleTranslator(source='auto', target='en')
+        else:
+            self.translator = None
 
+    def _detect_language(self, text: str) -> str:
+        """Detect the language of the text."""
+        if not TRANSLATION_AVAILABLE or not text.strip():
+            return 'en'
+        
+        try:
+            lang = detect(text)
+            return lang
+        except LangDetectException:
+            return 'en'  # Default to English if detection fails
+    
+    def _translate_to_english(self, text: str) -> Tuple[str, str]:
+        """Translate text to English if needed. Returns (translated_text, detected_language)."""
+        if not text.strip():
+            return text, 'en'
+        
+        # Detect language
+        detected_lang = self._detect_language(text)
+        
+        # If already English, return as-is
+        if detected_lang == 'en':
+            return text, detected_lang
+        
+        # Translate if translator available
+        if TRANSLATION_AVAILABLE and self.translator:
+            try:
+                translated = self.translator.translate(text)
+                return translated, detected_lang
+            except Exception as e:
+                # If translation fails, return original text
+                print(f"Translation failed: {e}")
+                return text, detected_lang
+        
+        # No translation available, return original
+        return text, detected_lang
+    
     def _build_emotional_lexicon(self) -> Dict[str, Dict]:
-        """Build comprehensive emotional lexicon with sentiment scores."""
+        """Build comprehensive emotional lexicon with sentiment scores (English-only)."""
         return {
             # Positive emotions
             "joy": {
-                "keywords": ["happy", "felice", "gioia", "allegro", "content", "pleased", "delighted"],
+                "keywords": ["happy", "content", "pleased", "delighted", "joyful", "cheerful", "glad"],
                 "score": 0.8,
                 "arousal": 0.7,
                 "valence": 0.9
             },
             "excitement": {
-                "keywords": ["excited", "eccitato", "thrilled", "enthusiastic", "energetic"],
+                "keywords": ["excited", "thrilled", "enthusiastic", "energetic", "pumped", "eager"],
                 "score": 0.9,
                 "arousal": 0.9,
                 "valence": 0.8
             },
             "satisfaction": {
-                "keywords": ["satisfied", "soddisfatto", "pleased", "content", "fulfilled"],
+                "keywords": ["satisfied", "pleased", "content", "fulfilled", "gratified", "accomplished"],
                 "score": 0.7,
                 "arousal": 0.4,
                 "valence": 0.8
@@ -51,19 +100,19 @@ class AdvancedSentimentAnalyzer:
 
             # Negative emotions
             "frustration": {
-                "keywords": ["frustrated", "frustrato", "annoyed", "irritated", "upset"],
+                "keywords": ["frustrated", "annoyed", "irritated", "upset", "exasperated", "vexed"],
                 "score": -0.6,
                 "arousal": 0.7,
                 "valence": 0.2
             },
             "confusion": {
-                "keywords": ["confused", "confuso", "puzzled", "unclear", "lost"],
+                "keywords": ["confused", "puzzled", "unclear", "lost", "bewildered", "perplexed"],
                 "score": -0.3,
                 "arousal": 0.5,
                 "valence": 0.4
             },
             "anger": {
-                "keywords": ["angry", "arrabbiato", "mad", "furious", "outraged"],
+                "keywords": ["angry", "mad", "furious", "outraged", "enraged", "irate"],
                 "score": -0.8,
                 "arousal": 0.9,
                 "valence": 0.1
@@ -71,13 +120,13 @@ class AdvancedSentimentAnalyzer:
 
             # Neutral/Complex emotions
             "curiosity": {
-                "keywords": ["curious", "curioso", "interested", "intrigued", "wondering"],
+                "keywords": ["curious", "interested", "intrigued", "wondering", "inquisitive", "inquiring"],
                 "score": 0.5,
                 "arousal": 0.6,
                 "valence": 0.7
             },
             "surprise": {
-                "keywords": ["surprised", "sorpreso", "amazed", "shocked", "unexpected"],
+                "keywords": ["surprised", "amazed", "shocked", "unexpected", "astonished", "startled"],
                 "score": 0.2,
                 "arousal": 0.8,
                 "valence": 0.5
@@ -135,7 +184,7 @@ class AdvancedSentimentAnalyzer:
         Perform advanced multi-level sentiment analysis.
 
         Args:
-            text: The text to analyze
+            text: The text to analyze (any language - will be auto-translated to English)
             context: Additional context information
             history: Previous interaction history
 
@@ -145,20 +194,27 @@ class AdvancedSentimentAnalyzer:
         context = context or {}
         history = history or []
 
+        # Auto-translate to English for analysis (supports any language)
+        original_text = text
+        translated_text, detected_language = self._translate_to_english(text)
+        
+        # Use translated text for analysis
+        analysis_text = translated_text
+
         # Level 1: Linguistic Analysis
-        linguistic_analysis = self._analyze_linguistic(text)
+        linguistic_analysis = self._analyze_linguistic(analysis_text)
 
         # Level 2: Contextual Analysis
-        contextual_analysis = self._analyze_contextual(text, context)
+        contextual_analysis = self._analyze_contextual(analysis_text, context)
 
         # Level 3: Behavioral Analysis
-        behavioral_analysis = self._analyze_behavioral(text, history)
+        behavioral_analysis = self._analyze_behavioral(analysis_text, history)
 
         # Level 4: Performance Analysis
         performance_analysis = self._analyze_performance(context, history)
 
         # Level 5: Pattern Recognition
-        pattern_analysis = self._analyze_patterns(text, history)
+        pattern_analysis = self._analyze_patterns(analysis_text, history)
 
         # Combine all analyses
         combined_sentiment = self._combine_analyses(
@@ -168,11 +224,19 @@ class AdvancedSentimentAnalyzer:
             performance_analysis,
             pattern_analysis
         )
+        
+        # Add multilingual metadata
+        combined_sentiment["language_info"] = {
+            "original_text": original_text,
+            "detected_language": detected_language,
+            "translated_text": translated_text if detected_language != 'en' else None,
+            "translation_applied": detected_language != 'en'
+        }
 
-        # Store for future pattern recognition
+        # Store for future pattern recognition (use original text)
         self.history.append({
             "timestamp": datetime.now().isoformat(),
-            "text": text,
+            "text": original_text,
             "context": context,
             "sentiment": combined_sentiment
         })

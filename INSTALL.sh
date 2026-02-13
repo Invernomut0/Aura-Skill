@@ -79,6 +79,35 @@ chmod +x "$HOME/.openclaw/skills/emotion-engine/emotion_tool.py"
 find "$HOME/.openclaw/skills/emotion-engine" -name "*.py" -exec chmod +x {} \; 2>/dev/null || true
 success "Skill installed: emotion-engine"
 
+# Install Python dependencies
+log "Installing Python dependencies..."
+SKILL_DIR="$HOME/.openclaw/skills/emotion-engine"
+
+# Check if requirements.txt exists
+if [ -f "$SKILL_DIR/requirements.txt" ]; then
+  log "Found requirements.txt, installing all dependencies..."
+  if python3 -m pip install -r "$SKILL_DIR/requirements.txt" --quiet 2>&1 | tail -5; then
+    success "Python dependencies installed from requirements.txt"
+  else
+    warning "Some dependencies may have failed to install"
+  fi
+else
+  # Manual installation of core dependencies
+  log "Installing core dependency: numpy..."
+  if python3 -m pip install numpy --quiet 2>&1 | tail -5; then
+    success "numpy installed"
+  else
+    warning "numpy installation failed - ML features may not work"
+  fi
+  
+  log "Installing multilingual support (optional)..."
+  if python3 -m pip install deep-translator langdetect --quiet 2>&1 | tail -5; then
+    success "Multilingual support installed (deep-translator, langdetect)"
+  else
+    warning "Multilingual support installation failed - will work with English only"
+  fi
+fi
+
 # Test the skill
 log "Testing skill..."
 if python3 "$HOME/.openclaw/skills/emotion-engine/emotion_tool.py" emotions 2>&1 | grep -q "Emotional State"; then
@@ -201,6 +230,9 @@ fi
 echo "3. Test the emotion system:"
 echo "   python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions"
 echo
+echo "4. Check multilingual support:"
+echo "   python3 ~/.openclaw/skills/emotion-engine/test_multilingual.py"
+echo
 
 log "Available Slash Commands"
 echo "======================================"
@@ -213,6 +245,9 @@ echo "  /emotions metacognition - Meta-cognitive analysis"
 echo "  /emotions predict      - Predict emotional trajectory"
 echo "  /emotions personality  - Show personality traits"
 echo "  /emotions config       - Show configuration"
+echo
+echo "💡 Multilingual Support: Write in any language (IT, ES, FR, DE, etc.)"
+echo "   The system automatically translates for emotion analysis."
 echo
 
 log "File Locations"

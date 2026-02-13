@@ -91,6 +91,34 @@ Configures the emotional system parameters
 ### `/emotions introspect [depth]`
 Activates deep introspective reflection on one's own processes
 
+## Multilingual Support
+
+The emotion system includes **automatic translation support** for sentiment analysis:
+
+- **Any Language**: Write in any language (Italian, Spanish, French, German, etc.)
+- **Auto-Translation**: Text is automatically translated to English for emotion analysis
+- **Single Keyword Set**: Maintains only English keywords, reducing complexity
+- **Transparent**: Translation happens automatically without user intervention
+- **Language Detection**: Automatically detects the input language
+
+### Requirements
+Install multilingual support with:
+```bash
+pip install deep-translator langdetect
+```
+
+### How It Works
+1. System detects input text language
+2. If not English, translates to English automatically
+3. Performs emotion analysis on translated text
+4. Stores original text for history
+
+### Example
+- **Input (Italian)**: "Sono molto felice e curioso di vedere come funziona!"
+- **Detected Language**: Italian (it)
+- **Translated**: "I am very happy and curious to see how it works!"
+- **Emotions Detected**: joy: 30%, curiosity: 70%
+
 ## Main Emotional Triggers
 
 1. **User Feedback** (Weight: 40%)

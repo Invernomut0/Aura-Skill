@@ -30,6 +30,14 @@
 - ✅ Historical analysis tools and data export
 - ✅ RESTful API for programmatic access
 
+#### 🌍 Multilingual Support (NEW)
+- ✅ Automatic language detection (100+ languages)
+- ✅ Auto-translation to English for emotion analysis
+- ✅ Italian, Spanish, French, German fully tested
+- ✅ No need to maintain keywords in multiple languages
+- ✅ Transparent translation pipeline
+- ✅ Works without translation libs (English-only fallback)
+
 #### 🧪 Testing Results
 - ✅ All new commands tested and functional
 - ✅ `/emotions blend` - Working correctly

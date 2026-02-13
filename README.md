@@ -10,6 +10,7 @@
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
 - [Installation](#installation)
+- [Python Dependencies](#python-dependencies)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Available Commands](#available-commands)
@@ -255,6 +256,64 @@ graph TD
    ```
 
 </details>
+
+---
+
+## 🐍 Python Dependencies
+
+The emotion engine requires the following Python packages:
+
+### Core Dependencies
+
+```bash
+# Install all dependencies at once
+pip install -r skills/emotion-engine/requirements.txt
+```
+
+**Required packages**:
+- `numpy>=1.20.0` - Core ML and numerical computing
+
+### Multilingual Support (Optional)
+
+**Recommended packages** for automatic translation:
+- `deep-translator>=1.11.0` - Google Translate API wrapper
+- `langdetect>=1.0.9` - Automatic language detection
+
+```bash
+# Install multilingual support
+pip install deep-translator langdetect
+```
+
+### 🌍 Multilingual Capabilities
+
+The emotion system now supports **automatic translation** for emotion analysis:
+
+- **Write in any language**: Italian, Spanish, French, German, and 100+ languages
+- **Automatic detection**: The system detects your language automatically
+- **Transparent translation**: Text is translated to English for emotion analysis
+- **No keyword maintenance**: No need to maintain emotion keywords in multiple languages
+
+**Example**:
+```bash
+# Works with Italian
+/emotions "Sono molto felice per questo risultato!"
+
+# Works with Spanish
+/emotions "Estoy muy emocionado por aprender esto"
+
+# Works with French
+/emotions "Je suis curieux de voir comment cela fonctionne"
+```
+
+**How it works**:
+1. System detects the input language using `langdetect`
+2. Translates to English using `deep-translator` (Google Translate)
+3. Performs emotion analysis on the English text
+4. Returns emotion scores
+
+**Note**: The system works in English-only mode if multilingual packages are not installed.
+
+For detailed documentation, see [MULTILINGUAL.md](MULTILINGUAL.md).
 
 ---
 
