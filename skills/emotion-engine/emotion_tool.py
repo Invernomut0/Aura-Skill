@@ -889,17 +889,30 @@ def generate_dashboard_data() -> Dict[str, Any]:
 def main():
     """Main entry point for the emotion-engine skill."""
     parser = argparse.ArgumentParser(description='OpenClaw Emotional Intelligence System')
-    parser.add_argument('command', help='Command to execute')
+    parser.add_argument('command', help='Command or subcommand to execute')
     parser.add_argument('args', nargs='*', help='Command arguments')
 
     parsed_args = parser.parse_args()
 
-    if parsed_args.command in ('emotions', 'emotion_engine', 'emotion-engine'):
+    # List of valid subcommands that handle_emotions_command recognizes
+    valid_subcommands = {
+        'detailed', 'history', 'triggers', 'personality', 'metacognition',
+        'predict', 'introspect', 'reset', 'export', 'config', 'version',
+        'blend', 'memory', 'correlations', 'dashboard', 'simulate',
+    }
+
+    if parsed_args.command in ('emotions', 'emotion_engine', 'emotion-engine', '/emotions'):
+        # Full format: emotion_tool.py emotions [subcommand] [args...]
         result = handle_emotions_command(parsed_args.args)
+        print(result)
+    elif parsed_args.command in valid_subcommands:
+        # Direct subcommand: emotion_tool.py dashboard [args...]
+        # OpenClaw dispatches commands this way
+        result = handle_emotions_command([parsed_args.command] + parsed_args.args)
         print(result)
     else:
         print(f"❌ Unknown command: {parsed_args.command}")
-        print("Available commands: emotions")
+        print("Available commands: emotions, " + ", ".join(sorted(valid_subcommands)))
 
 
 class EmotionTool:
@@ -917,12 +930,22 @@ class EmotionTool:
         This method is called by OpenClaw when the skill is invoked.
 
         Args:
-            args: List of command arguments
+            args: List of command arguments, or a command string
 
         Returns:
             Command result as string
         """
         try:
+            # Handle different input formats from OpenClaw
+            if isinstance(args, str):
+                # String input: "/emotions dashboard" or "dashboard"
+                if args.startswith('/emotions'):
+                    args = args[len('/emotions'):].strip().split()
+                else:
+                    args = args.split()
+            elif not isinstance(args, list):
+                args = [str(args)]
+
             return handle_emotions_command(args)
         except Exception as e:
             return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."
