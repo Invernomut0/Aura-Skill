@@ -19,6 +19,9 @@ from urllib.parse import urlparse, parse_qs
 # Global emotion engine instance for state persistence
 _global_emotion_engine = None
 
+# Global dashboard server thread
+dashboard_server_thread = None
+
 def get_emotion_engine():
     """Get or create the global emotion engine instance."""
     global _global_emotion_engine
@@ -214,7 +217,7 @@ def handle_emotions_command(args: List[str]) -> str:
             # Start web dashboard server
             try:
                 server_thread = start_dashboard_server()
-                if dashboard_server_thread and dashboard_server_thread.is_alive():
+                if server_thread and server_thread.is_alive():
                     output = ["🌐 Web Dashboard Active", "=" * 25]
                     output.append(f"Dashboard is running at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
                 else:
