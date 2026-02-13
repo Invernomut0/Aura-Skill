@@ -11,20 +11,28 @@ from typing import Dict, Any, List, Tuple
 import argparse
 import random
 from datetime import datetime, timedelta
+import threading
+import http.server
+import socketserver
+from urllib.parse import urlparse, parse_qs
 
-# Add the tools directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Global state for dashboard server
+dashboard_server_thread = None
+
+# Import constants first (always available)
+from config.emotional_constants import (
+    MIXED_EMOTIONS, BLENDING_RULES, LONG_TERM_MEMORY,
+    PERFORMANCE_CORRELATIONS, WEB_DASHBOARD
+)
 
 try:
     from tools.emotion_ml_engine import EmotionEngine
-    from config.emotional_constants import (
-        MIXED_EMOTIONS, BLENDING_RULES, LONG_TERM_MEMORY,
-        PERFORMANCE_CORRELATIONS, WEB_DASHBOARD
-    )
+    EMOTION_ENGINE_AVAILABLE = True
 except ImportError as e:
-    print(f"Error importing emotion engine: {e}")
-    print("Please ensure all dependencies are installed")
-    sys.exit(1)
+    print(f"Warning: Emotion ML engine not available: {e}")
+    print("Using mock data for demonstration purposes")
+    EMOTION_ENGINE_AVAILABLE = False
+    EmotionEngine = None
 
 
 def get_skill_version():
@@ -125,6 +133,36 @@ def handle_emotions_command(args: List[str]) -> str:
         if len(args) > 0 and args[0].startswith('/emotions'):
             # Remove the command prefix if present
             args = args[1:] if len(args) > 1 else []
+
+        # Dashboard command doesn't need the engine
+        if len(args) > 0 and args[0] == 'dashboard':
+            # Start web dashboard server
+            try:
+                server_thread = start_dashboard_server()
+                if dashboard_server_thread and dashboard_server_thread.is_alive():
+                    output = ["🌐 Web Dashboard Active", "=" * 25]
+                    output.append(f"Dashboard is running at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
+                else:
+                    output = ["🌐 Web Dashboard Started", "=" * 25]
+                    output.append(f"Dashboard server started at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
+
+                output.append("")
+                output.append("Available endpoints:")
+                for endpoint, description in WEB_DASHBOARD['endpoints'].items():
+                    output.append(f"  {endpoint} - {description}")
+                output.append("")
+                output.append("Open the URL above in your browser to view the dashboard.")
+
+                return '\n'.join(output)
+            except Exception as e:
+                return f"❌ Failed to start dashboard server: {str(e)}"
+
+        # Version command doesn't need the engine
+        if len(args) > 0 and args[0] == 'version':
+            return f"🎭 Emotion Engine Skill v{get_skill_version()}"
+
+        if not EMOTION_ENGINE_AVAILABLE:
+            return "❌ Emotion engine not available. Please install required dependencies (numpy) and ensure the emotion_ml_engine module is accessible."
 
         engine = EmotionEngine()
 
@@ -411,24 +449,6 @@ def handle_emotions_command(args: List[str]) -> str:
 
             return '\n'.join(output)
 
-        elif args[0] == 'dashboard':
-            # Web dashboard data
-            dashboard_data = generate_dashboard_data()
-
-            output = ["🌐 Web Dashboard Data", "=" * 25]
-            output.append("Current Emotions:")
-            for emotion, intensity in dashboard_data['current_emotions'].items():
-                output.append(f"  {emotion.capitalize()}: {intensity:.2f}")
-
-            output.append("\nPerformance Metrics:")
-            for metric, value in dashboard_data['performance_metrics'].items():
-                output.append(f"  {metric.replace('_', ' ').title()}: {value:.2f}")
-
-            output.append(f"\nRecent History Entries: {len(dashboard_data['recent_history'])}")
-            output.append(f"Dashboard URL: http://localhost:{WEB_DASHBOARD['port']}")
-
-            return '\n'.join(output)
-
         else:
             return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
 
@@ -606,6 +626,229 @@ def analyze_long_term_patterns(memory_data: List[Dict[str, Any]], days: int = 30
         analysis["emotional_volatility"] = sum(intensity_changes) / len(intensity_changes) if intensity_changes else 0.0
 
     return analysis
+
+
+class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
+    """HTTP request handler for the emotion dashboard."""
+
+    def do_GET(self):
+        """Handle GET requests."""
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+
+        if path == '/':
+            self.send_dashboard_html()
+        elif path == '/api/emotions/current':
+            self.send_json_response(generate_dashboard_data()['current_emotions'])
+        elif path == '/api/emotions/history':
+            self.send_json_response(generate_dashboard_data()['recent_history'])
+        elif path == '/api/performance/correlation':
+            self.send_json_response(generate_dashboard_data()['correlations'])
+        elif path == '/api/memory/patterns':
+            self.send_json_response(generate_dashboard_data()['memory_patterns'])
+        elif path == '/api/dashboard/config':
+            self.send_json_response(WEB_DASHBOARD)
+        else:
+            self.send_error(404, "Not Found")
+
+    def send_dashboard_html(self):
+        """Send the main dashboard HTML page."""
+        dashboard_data = generate_dashboard_data()
+
+        html_template = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Engine Dashboard</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .dashboard-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }}
+        .card {{
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }}
+        .card h3 {{
+            margin-top: 0;
+            color: #ffd700;
+        }}
+        .emotion-bar {{
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }}
+        .emotion-label {{
+            width: 120px;
+            font-weight: bold;
+        }}
+        .emotion-value {{
+            flex: 1;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-left: 10px;
+        }}
+        .emotion-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #FF5722);
+            border-radius: 10px;
+        }}
+        .metric {{
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }}
+        .status {{
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Emotion Engine Dashboard</h1>
+            <p>Real-time emotional intelligence monitoring</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>Current Emotions</h3>"""
+
+        # Generate emotion bars
+        emotion_html = ""
+        for emotion, intensity in dashboard_data['current_emotions'].items():
+            emotion_html += f'''
+                <div class="emotion-bar">
+                    <span class="emotion-label">{emotion.title()}</span>
+                    <div class="emotion-value">
+                        <div class="emotion-fill" style="width: {intensity*100}%"></div>
+                    </div>
+                    <span>{intensity:.2f}</span>
+                </div>'''
+
+        html_template += emotion_html + """
+            </div>
+
+            <div class="card">
+                <h3>Performance Metrics</h3>"""
+
+        # Generate performance metrics
+        metrics_html = ""
+        for metric, value in dashboard_data['performance_metrics'].items():
+            metrics_html += f'''
+                <div class="metric">
+                    <span>{metric.replace("_", " ").title()}</span>
+                    <span>{value:.2f}</span>
+                </div>'''
+
+        html_template += metrics_html + """
+            </div>
+
+            <div class="card">
+                <h3>Memory Patterns</h3>
+                <div class="metric">
+                    <span>Dominant Trend</span>
+                    <span>""" + dashboard_data['memory_patterns']['dominant_trend'].replace("_", " ").title() + """</span>
+                </div>
+                <div class="metric">
+                    <span>Volatility Index</span>
+                    <span>""" + f"{dashboard_data['memory_patterns']['volatility_index']:.2f}" + """</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>System Status</h3>
+                <div class="metric">
+                    <span>History Entries</span>
+                    <span>""" + str(len(dashboard_data['recent_history'])) + """</span>
+                </div>
+                <div class="metric">
+                    <span>Active Correlations</span>
+                    <span>""" + str(len(dashboard_data['correlations'])) + """</span>
+                </div>
+                <div class="metric">
+                    <span>Version</span>
+                    <span>""" + get_skill_version() + """</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>✅ Dashboard Active</h3>
+            <p>Emotion Engine is running and monitoring in real-time</p>
+            <p>Last updated: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
+        </div>
+    </div>
+</body>
+</html>"""
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(html_template.encode('utf-8'))
+
+    def send_json_response(self, data):
+        """Send a JSON response."""
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2).encode('utf-8'))
+
+    def log_message(self, format, *args):
+        """Override to reduce server noise."""
+        pass
+
+
+def start_dashboard_server():
+    """Start the dashboard web server in a background thread."""
+    global dashboard_server_thread
+
+    if dashboard_server_thread and dashboard_server_thread.is_alive():
+        return dashboard_server_thread  # Server already running
+
+    def run_server():
+        try:
+            with socketserver.TCPServer((WEB_DASHBOARD['host'], WEB_DASHBOARD['port']), DashboardHTTPRequestHandler) as httpd:
+                print(f"🌐 Dashboard server started at http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
+                httpd.serve_forever()
+        except Exception as e:
+            print(f"❌ Failed to start dashboard server: {e}")
+
+    dashboard_server_thread = threading.Thread(target=run_server, daemon=True)
+    dashboard_server_thread.start()
+    return dashboard_server_thread
 
 
 def generate_dashboard_data() -> Dict[str, Any]:

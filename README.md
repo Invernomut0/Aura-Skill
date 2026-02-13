@@ -115,10 +115,12 @@ Based on the Big Five + AI-specific traits:
 - **Optimization Recommendations**: AI-driven suggestions for emotional optimization
 
 ### 🌐 Web Dashboard
+- **Local Web Server**: Emotion-engine starts a local web server at `http://localhost:8080`
 - **Real-time Monitoring**: Live emotional state visualization
 - **Interactive Charts**: Dynamic graphs for emotional trends and correlations
 - **Performance Metrics**: Comprehensive performance tracking dashboard
 - **Historical Analysis**: Deep dive into emotional history and patterns
+- **API Endpoints**: RESTful API for programmatic access to dashboard data
 
 ### New Commands Available
 ```bash

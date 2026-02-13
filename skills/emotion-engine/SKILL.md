@@ -199,8 +199,9 @@ Quantitative analysis of how emotions impact system performance:
 - **Adaptive Learning**: Correlations that evolve with real interaction data
 
 ### Web Dashboard for Monitoring
-Interactive web interface for real-time emotional monitoring:
+Interactive web interface served locally by the emotion-engine:
 
+- **Local Web Server**: Automatically starts at `http://localhost:8080` when `/emotions dashboard` is called
 - **Live Visualizations**: Real-time charts and graphs of emotional states
 - **Comprehensive Analytics**: Timeline views, correlation graphs, memory patterns
 - **API Endpoints**: RESTful APIs for programmatic access to emotional data
