@@ -4,6 +4,11 @@ description: Advanced emotional intelligence system for OpenClaw with human-like
 user-invocable: true
 command-dispatch: tool
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
+tools:
+  - name: emotion_engine
+    file: emotion_tool.py
+    tool: __openclaw_tool__
+    description: Main command handler for emotional intelligence system
 ---
 
 # Advanced Emotional Intelligence System for OpenClaw

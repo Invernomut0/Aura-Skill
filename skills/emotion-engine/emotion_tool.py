@@ -610,5 +610,44 @@ def main():
         print("Available commands: emotions")
 
 
+class EmotionTool:
+    """
+    OpenClaw tool class for emotional intelligence system.
+    """
+
+    def __init__(self):
+        self.name = "emotion_tool"
+        self.description = "Main command handler for emotional intelligence system"
+
+    def run(self, args):
+        """
+        OpenClaw tool run method.
+        This method is called by OpenClaw when the skill is invoked.
+
+        Args:
+            args: List of command arguments
+
+        Returns:
+            Command result as string
+        """
+        try:
+            return handle_emotions_command(args)
+        except Exception as e:
+            return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."
+
+    def execute(self, args):
+        """
+        Alternative execute method for OpenClaw compatibility.
+        """
+        return self.run(args)
+
+
+# Create a global instance for OpenClaw
+emotion_tool = EmotionTool()
+
+# Default export for OpenClaw
+__openclaw_tool__ = emotion_tool
+
+
 if __name__ == '__main__':
     main()
