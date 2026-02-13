@@ -35,16 +35,51 @@ def update_emotions_from_interaction(command: str, args: List[str], result_succe
     if engine is None:
         return
 
-    # Create interaction data based on command type
+    # Create rich interaction text based on command type for sentiment analysis
+    command_texts = {
+        "": "User is curious about current emotional status and wants to understand the overall emotional state",
+        "detailed": "User is deeply curious and intrigued by detailed emotional analysis, seeking comprehensive personality insights and emotional patterns",
+        "history": "User is interested in exploring emotional interaction history and fascinated by learning about past emotional patterns and behaviors",
+        "personality": "User is curious about personality traits and wants to understand self-characteristics and emotional tendencies",
+        "metacognition": "User is engaged in deep self-reflection and curious about meta-cognitive processes and emotional awareness",
+        "predict": "User is curious about future emotional trajectories and interested in predictive insights about emotional development",
+        "introspect": "User is deeply introspective and curious about internal emotional patterns and self-analysis",
+        "triggers": "User is interested in understanding emotional triggers and curious about response patterns and emotional reactions",
+        "reset": "User is taking control and resetting emotional state, showing determination to recalibrate emotional balance",
+        "export": "User is satisfied with gathering emotional intelligence data and pleased with the comprehensive export capabilities",
+        "config": "User is curious about system configuration and interested in understanding the technical settings and parameters",
+        "version": "User is curious about system capabilities and interested in learning about available features and updates",
+        "blend": "User is creatively experimenting with emotion blending and excited about discovering new emotional combinations",
+        "memory": "User is fascinated by long-term emotional memory patterns and curious about historical emotional trends",
+        "correlations": "User is intrigued by performance-emotion correlations and interested in understanding emotional impact on outcomes",
+        "dashboard": "User is excited about visual emotional monitoring and pleased with the interactive dashboard capabilities"
+    }
+
+    # Get appropriate text for this command
+    interaction_text = command_texts.get(command, f"User executed {command} command with {len(args)} arguments")
+
+    # Add emotional context based on command success/failure
+    if not result_success:
+        interaction_text += " - command execution encountered difficulties"
+    else:
+        interaction_text += " - command completed successfully"
+
+    # Create interaction data with rich context
     interaction_data = {
+        "text": interaction_text,
         "command": command,
         "args": args,
         "timestamp": datetime.now().isoformat(),
         "success": result_success,
         "context": {
-            "command_type": "query" if command in ["", "detailed", "history", "personality", "triggers"] else "action",
+            "command_type": "exploratory" if command in ["", "detailed", "history", "personality", "metacognition"] else
+                         "predictive" if command in ["predict", "correlations", "memory"] else
+                         "manipulative" if command in ["reset", "blend", "export"] else
+                         "informational" if command in ["config", "version", "triggers"] else "utility",
             "complexity": len(args),
-            "emotional_context": "curious" if "detailed" in args else "neutral"
+            "emotional_valence": "positive" if result_success else "negative",
+            "engagement_level": "high" if command in ["metacognition", "introspect", "detailed"] else
+                             "medium" if command in ["predict", "correlations", "blend"] else "low"
         }
     }
 
@@ -52,6 +87,7 @@ def update_emotions_from_interaction(command: str, args: List[str], result_succe
         # Update emotional state
         engine.update_emotional_state(interaction_data)
     except Exception as e:
+        # Don't let emotion updates break the command
         # Don't let emotion updates break the command
         print(f"Warning: Failed to update emotions: {e}")
         import traceback
