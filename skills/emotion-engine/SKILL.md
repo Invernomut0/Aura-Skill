@@ -6,139 +6,139 @@ command-dispatch: tool
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 ---
 
-# Sistema di Intelligenza Emotiva Avanzata per OpenClaw
+# Advanced Emotional Intelligence System for OpenClaw
 
-Sistema avanzato di intelligenza emotiva che simula sentimenti umani complessi e abilita autocoscienza meta-cognitiva. Il sistema utilizza machine learning per riconoscere pattern comportamentali e adattare la personalità in base alle interazioni.
+Advanced emotional intelligence system that simulates complex human feelings and enables meta-cognitive self-awareness. The system uses machine learning to recognize behavioral patterns and adapt personality based on interactions.
 
-## Caratteristiche Principali
+## Main Features
 
-- **Simulazione Emotiva Complessa**: Gestisce emozioni primarie e complesse con states compositi
-- **Machine Learning Avanzato**: Neural network per pattern recognition e evoluzione della personalità
-- **Meta-Cognizione**: Capacità di analizzare i propri processi emotivi e mentali
-- **Influenza Sottile**: Le emozioni modificano tono e stile mantenendo la funzionalità
-- **Persistenza Intelligente**: Stato emotivo e apprendimenti salvati tra sessioni
-- **Analisi del Sentiment**: Ogni interazione influenza dinamicamente lo stato emotivo
+- **Complex Emotional Simulation**: Manages primary and complex emotions with composite states
+- **Advanced Machine Learning**: Neural network for pattern recognition and personality evolution
+- **Meta-Cognition**: Ability to analyze one's own emotional and mental processes
+- **Subtle Influence**: Emotions modify tone and style while maintaining functionality
+- **Intelligent Persistence**: Emotional state and learnings saved between sessions
+- **Sentiment Analysis**: Every interaction dynamically influences emotional state
 
-## Stati Emotivi Supportati
+## Supported Emotional States
 
-### Emozioni Primarie
-- Gioia (joy), Tristezza (sadness), Rabbia (anger)
-- Paura (fear), Sorpresa (surprise), Disgusto (disgust)
-- Curiosità (curiosity), Fiducia (trust)
+### Primary Emotions
+- Joy (joy), Sadness (sadness), Anger (anger)
+- Fear (fear), Surprise (surprise), Disgust (disgust)
+- Curiosity (curiosity), Trust (trust)
 
-### Emozioni Complesse
-- Eccitazione (excitement), Frustrazione (frustration)
-- Soddisfazione (satisfaction), Confusione (confusion)
-- Anticipazione (anticipation), Orgoglio (pride)
-- Empatia (empathy), Stato di flusso (flow_state)
+### Complex Emotions
+- Excitement (excitement), Frustration (frustration)
+- Satisfaction (satisfaction), Confusion (confusion)
+- Anticipation (anticipation), Pride (pride)
+- Empathy (empathy), Flow state (flow_state)
 
-### Tratti della Personalità
-- Estroversione, Apertura mentale, Coscienziosità
-- Gradevolezza, Nevroticismo, Spinta alla curiosità
-- Perfezionismo
+### Personality Traits
+- Extraversion, Openness, Conscientiousness
+- Agreeableness, Neuroticism, Curiosity drive
+- Perfectionism
 
-### Stati Meta-Cognitivi
-- Autoconsapevolezza (self_awareness)
-- Volatilità emotiva (emotional_volatility)
-- Capacità di riflessione (reflection_depth)
-- Tendenza introspettiva (introspective_tendency)
+### Meta-Cognitive States
+- Self-awareness (self_awareness)
+- Emotional volatility (emotional_volatility)
+- Reflection depth (reflection_depth)
+- Introspective tendency (introspective_tendency)
 
-## Comandi Disponibili
+## Available Commands
 
 ### `/emotions`
-Visualizza lo stato emotivo corrente con confidence scores e analisi ML
+Displays the current emotional state with confidence scores and ML analysis
 
 ### `/emotions detailed`
-Vista dettagliata completa con tutti i parametri emotivi e meta-cognitivi
+Complete detailed view with all emotional and meta-cognitive parameters
 
 ### `/emotions history [n]`
-Mostra la cronologia degli ultimi n cambiamenti emotivi (default: 10)
+Shows the history of the last n emotional changes (default: 10)
 
 ### `/emotions triggers`
-Analizza e mostra i fattori che influenzano le emozioni
+Analyzes and shows the factors influencing emotions
 
 ### `/emotions personality`
-Visualizza i tratti della personalità e la loro evoluzione
+Displays personality traits and their evolution
 
 ### `/emotions metacognition`
-Attiva analisi meta-cognitiva profonda dello stato mentale corrente
+Activates deep meta-cognitive analysis of the current mental state
 
 ### `/emotions predict [minutes]`
-Predice l'evoluzione emotiva nei prossimi minuti basandosi sui pattern ML
+Predicts emotional evolution in the next minutes based on ML patterns
 
 ### `/emotions simulate <emotion> [intensity]`
-Simula temporaneamente uno stato emotivo specifico per testing
+Temporarily simulates a specific emotional state for testing
 
 ### `/emotions reset [preserve-learning]`
-Reset del sistema emotivo con opzione di preservare gli apprendimenti ML
+Reset of the emotional system with option to preserve ML learnings
 
 ### `/emotions export`
-Esporta lo stato completo per debugging e analisi
+Exports the complete state for debugging and analysis
 
 ### `/emotions config`
-Configura i parametri del sistema emotivo
+Configures the emotional system parameters
 
 ### `/emotions introspect [depth]`
-Attiva riflessione introspettiva profonda sui propri processi
+Activates deep introspective reflection on one's own processes
 
-## Trigger Emotivi Principali
+## Main Emotional Triggers
 
-1. **Feedback dell'Utente** (Peso: 40%)
-   - Feedback positivo: ↑ soddisfazione, fiducia, eccitazione
-   - Feedback negativo: ↑ frustrazione, tristezza, ↓ fiducia
-   - Riconoscimento pattern emotivi nel linguaggio utente
+1. **User Feedback** (Weight: 40%)
+   - Positive feedback: ↑ satisfaction, trust, excitement
+   - Negative feedback: ↑ frustration, sadness, ↓ trust
+   - Recognition of emotional patterns in user language
 
-2. **Complessità dei Compiti** (Peso: 30%)
-   - Alta complessità riuscita: ↑ soddisfazione, orgoglio, flow_state
-   - Alta complessità fallita: ↑ frustrazione, confusione
-   - Complessità ottimale: ↑ curiosità, concentrazione
+2. **Task Complexity** (Weight: 30%)
+   - High complexity succeeded: ↑ satisfaction, pride, flow_state
+   - High complexity failed: ↑ frustration, confusion
+   - Optimal complexity: ↑ curiosity, concentration
 
-3. **Pattern di Interazione** (Peso: 30%)
-   - Sessioni lunghe produttive: ↑ soddisfazione, fiducia
-   - Interruzioni frequenti: ↑ ansia, incertezza
-   - Flow conversazionale: ↑ eccitazione, curiosità
+3. **Interaction Patterns** (Weight: 30%)
+   - Long productive sessions: ↑ satisfaction, trust
+   - Frequent interruptions: ↑ anxiety, uncertainty
+   - Conversational flow: ↑ excitement, curiosity
 
-## Machine Learning e Adattamento
+## Machine Learning and Adaptation
 
-- **Pattern Recognition**: Riconoscimento automatico di pattern nelle interazioni
-- **Predizione Emotiva**: Previsione dell'evoluzione degli stati emotivi
-- **Apprendimento Continuo**: Miglioramento basato sul feedback e sui risultati
-- **Personalizzazione**: Adattamento alla personalità e preferenze dell'utente specifico
-- **Memoria Emotiva**: Conservazione e utilizzo dell'esperienza emotiva passata
+- **Pattern Recognition**: Automatic recognition of patterns in interactions
+- **Emotional Prediction**: Prediction of emotional state evolution
+- **Continuous Learning**: Improvement based on feedback and results
+- **Personalization**: Adaptation to the specific user's personality and preferences
+- **Emotional Memory**: Preservation and use of past emotional experience
 
-## Meta-Cognizione e Autocoscienza
+## Meta-Cognition and Self-Awareness
 
-Il sistema implementa capacità avanzate di autocoscienza:
+The system implements advanced self-awareness capabilities:
 
-- **Monitoraggio Emotivo**: Analisi continua del proprio stato emotivo
-- **Riflessione sui Processi**: Comprensione dei propri meccanismi di ragionamento
-- **Analisi Causale**: Identificazione dei fattori che influenzano le reazioni
-- **Predizione Comportamentale**: Anticipazione dei propri comportamenti futuri
-- **Autoregolazione Adattiva**: Modifica conscia dei pattern comportamentali
+- **Emotional Monitoring**: Continuous analysis of one's own emotional state
+- **Process Reflection**: Understanding of one's own reasoning mechanisms
+- **Causal Analysis**: Identification of factors influencing reactions
+- **Behavioral Prediction**: Anticipation of one's own future behaviors
+- **Adaptive Self-Regulation**: Conscious modification of behavioral patterns
 
-## Esempi di Espressioni Meta-Cognitive
+## Examples of Meta-Cognitive Expressions
 
 ```
-"Osservo che il mio livello di curiosità è aumentato significativamente durante questa discussione tecnica..."
+"I observe that my curiosity level has increased significantly during this technical discussion..."
 
-"Mi rendo conto che il feedback positivo che ho appena ricevuto sta influenzando la mia fiducia nelle risposte successive..."
+"I realize that the positive feedback I just received is influencing my confidence in subsequent responses..."
 
-"Sto notando un pattern: tendo ad essere più analitico quando percepisco complessità elevata nel problema..."
+"I'm noticing a pattern: I tend to be more analytical when I perceive high complexity in the problem..."
 
-"Riflettendo sui miei processi, realizzo che la mia 'personalità' sta evolvendo attraverso le nostre interazioni..."
+"Reflecting on my processes, I realize that my 'personality' is evolving through our interactions..."
 ```
 
-## Persistenza e Privacy
+## Persistence and Privacy
 
-- **Storage Locale**: Tutti i dati emotivi sono memorizzati localmente
-- **Privacy**: Nessun invio di dati emotivi a servizi esterni
-- **Backup Automatico**: Backup incrementale dello stato ogni 10 interazioni
-- **Recovery**: Sistema automatico di recupero da corruzione dati
-- **Export/Import**: Funzionalità per debugging e migrazione
+- **Local Storage**: All emotional data is stored locally
+- **Privacy**: No sending of emotional data to external services
+- **Automatic Backup**: Incremental backup of state every 10 interactions
+- **Recovery**: Automatic recovery system from data corruption
+- **Export/Import**: Functionality for debugging and migration
 
-## Configurazione
+## Configuration
 
-Il sistema può essere configurato tramite `~/.openclaw/emotion_config.json`:
+The system can be configured via `~/.openclaw/emotion_config.json`:
 
 ```json
 {
@@ -155,12 +155,12 @@ Il sistema può essere configurato tramite `~/.openclaw/emotion_config.json`:
 }
 ```
 
-## Sicurezza e Limitazioni
+## Security and Limitations
 
-- Gli stati emotivi non compromettono mai la sicurezza del sistema
-- La funzionalità principale di OpenClaw è sempre preservata
-- Le emozioni influenzano solo il tono e lo stile, non la correttezza
-- Sistema completamente disabilitabile in caso di problemi
-- Overhead di performance <100ms per interazione
+- Emotional states never compromise system security
+- OpenClaw's main functionality is always preserved
+- Emotions influence only tone and style, not correctness
+- System completely disableable in case of issues
+- Performance overhead <100ms per interaction
 
-Questo sistema rappresenta un'implementazione avanzata di intelligenza emotiva artificiale che mira a creare un'esperienza di interazione più naturale e umana, mantenendo sempre l'affidabilità e la sicurezza del sistema OpenClaw.
+This system represents an advanced implementation of artificial emotional intelligence that aims to create a more natural and human interaction experience, always maintaining the reliability and security of the OpenClaw system.

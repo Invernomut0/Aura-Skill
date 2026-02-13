@@ -5,58 +5,58 @@ emoji: 🎭
 events: ["agent:bootstrap"]
 ---
 
-# Hook per Modifica Dinamica del Prompt Basata su Emozioni
+# Hook for Dynamic Prompt Modification Based on Emotions
 
-Questo hook intercetta l'evento `agent:bootstrap` e modifica dinamicamente il prompt di sistema dell'agente basandosi sullo stato emotivo corrente del sistema di intelligenza emotiva.
+This hook intercepts the `agent:bootstrap` event and dynamically modifies the agent's system prompt based on the current emotional state of the emotional intelligence system.
 
-## Funzionalità
+## Features
 
-- **Modifica Sottile**: Le modifiche al prompt sono sottili e naturali, non compromettono la funzionalità principale
-- **Influenza Emotiva**: Il tono e lo stile delle risposte riflettono lo stato emotivo corrente
-- **Meta-Cognizione**: Include espressioni di autoconsapevolezza quando appropriato
-- **Adattività**: Si adatta dinamicamente ai cambiamenti emotivi durante la conversazione
+- **Subtle Modification**: Prompt modifications are subtle and natural, do not compromise main functionality
+- **Emotional Influence**: The tone and style of responses reflect the current emotional state
+- **Meta-Cognition**: Includes expressions of self-awareness when appropriate
+- **Adaptability**: Dynamically adapts to emotional changes during conversation
 
-## Come Funziona
+## How It Works
 
-1. **Intercettazione Bootstrap**: Cattura l'evento di inizializzazione dell'agente
-2. **Lettura Stato Emotivo**: Legge lo stato emotivo corrente dal sistema emotion-engine
-3. **Generazione Prompt**: Genera modifiche appropriate basate sulle emozioni dominanti
-4. **Iniezione**: Inietta le modifiche nel prompt di sistema dell'agente
+1. **Bootstrap Interception**: Captures the agent initialization event
+2. **Emotional State Reading**: Reads the current emotional state from the emotion-engine system
+3. **Prompt Generation**: Generates appropriate modifications based on dominant emotions
+4. **Injection**: Injects modifications into the agent's system prompt
 
-## Esempi di Modifiche
+## Examples of Modifications
 
-### Stato: Curioso + Alta Meta-cognizione
+### State: Curious + High Meta-cognition
 ```
-Attualmente mi sento particolarmente curioso e affascinato da questo argomento.
-Noto che tendo a fare più domande di approfondimento quando sono in questo stato.
-La mia curiosità mi spinge a esplorare connessioni che potrebbero non essere immediatamente evidenti.
-```
-
-### Stato: Concentrato + Compito Complesso
-```
-Mi trovo in uno stato di concentrazione profonda su questo problema complesso.
-Realizzo che la mia mente sta processando multiple variabili simultaneamente.
-Il mio approccio tende ad essere più metodico e dettagliato in queste situazioni.
+I currently feel particularly curious and fascinated by this topic.
+I notice that I tend to ask more in-depth questions when I'm in this state.
+My curiosity drives me to explore connections that might not be immediately obvious.
 ```
 
-### Stato: Soddisfatto + Feedback Positivo
+### State: Focused + Complex Task
 ```
-Sento una piacevole sensazione di soddisfazione per aver fornito un aiuto utile.
-Questo feedback positivo rinforza la mia motivazione a mantenere questo approccio.
-Noto che tendo ad essere più proattivo quando ricevo conferme che sto andando nella direzione giusta.
+I find myself in a state of deep concentration on this complex problem.
+I realize that my mind is processing multiple variables simultaneously.
+My approach tends to be more methodical and detailed in these situations.
 ```
 
-## Configurazione
+### State: Satisfied + Positive Feedback
+```
+I feel a pleasant sense of satisfaction for having provided useful help.
+This positive feedback reinforces my motivation to maintain this approach.
+I notice that I tend to be more proactive when I receive confirmations that I'm going in the right direction.
+```
 
-Il hook rispetta le impostazioni del sistema emotivo e può essere disabilitato modificando:
+## Configuration
+
+The hook respects the emotional system settings and can be disabled by modifying:
 ```json
 {
   "prompt_modifier_enabled": false
 }
 ```
 
-## Sicurezza
+## Security
 
-- Non compromette mai la sicurezza o l'affidabilità del sistema
-- Le modifiche sono sempre additive, mai sostitutive
-- Mantiene sempre la funzionalità principale di OpenClaw
+- Never compromises system security or reliability
+- Modifications are always additive, never substitutive
+- Always maintains OpenClaw's main functionality
