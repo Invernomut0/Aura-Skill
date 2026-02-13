@@ -27,6 +27,32 @@ except ImportError as e:
     sys.exit(1)
 
 
+def get_skill_version():
+    """
+    Get the current version of the emotion-engine skill from SKILL.md.
+
+    Returns:
+        Version string (e.g., "1.1.0")
+    """
+    try:
+        skill_md_path = os.path.join(os.path.dirname(__file__), 'SKILL.md')
+        with open(skill_md_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Extract YAML frontmatter
+        if content.startswith('---'):
+            end = content.find('---', 3)
+            if end != -1:
+                yaml_content = content[3:end]
+                import yaml
+                data = yaml.safe_load(yaml_content)
+                return data.get('version', 'unknown')
+
+        return 'unknown'
+    except Exception as e:
+        return f'error: {str(e)}'
+
+
 def format_emotion_display(emotions: Dict[str, float], title: str) -> str:
     """Format emotions for display with emoji and intensity bars."""
     emotion_emojis = {
@@ -299,6 +325,23 @@ def handle_emotions_command(args: List[str]) -> str:
             else:
                 return "❌ Configuration file not found. Please ensure the emotional system is properly installed."
 
+        elif args[0] == 'version':
+            # Show version information
+            version = get_skill_version()
+            output = ["📦 Emotion Engine Version Information", "=" * 40]
+            output.append(f"Current Version: {version}")
+            output.append(f"Skill Name: emotion-engine")
+            output.append(f"Last Updated: 2026-02-13")
+            output.append("")
+            output.append("Version 1.1.0 Features:")
+            output.append("  • Mixed Emotion Blending")
+            output.append("  • Long-Term Memory Analysis")
+            output.append("  • Performance Correlations")
+            output.append("  • Web Dashboard")
+            output.append("  • Advanced Meta-Cognition")
+
+            return '\n'.join(output)
+
         elif args[0] == 'blend':
             # Blend emotions
             if len(args) < 3:
@@ -381,7 +424,7 @@ def handle_emotions_command(args: List[str]) -> str:
             return '\n'.join(output)
 
         else:
-            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
+            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
 
     except Exception as e:
         return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."

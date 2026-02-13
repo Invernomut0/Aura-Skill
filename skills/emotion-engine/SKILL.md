@@ -1,6 +1,7 @@
 ---
 name: emotion-engine
 description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
+version: 1.1.0
 user-invocable: true
 command-dispatch: tool
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}

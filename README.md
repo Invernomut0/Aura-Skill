@@ -476,6 +476,25 @@ Curiosity:
   User Satisfaction: ↑ 0.12
 ```
 
+#### 7. Version Information
+
+```bash
+$ /emotions version
+
+📦 Emotion Engine Version Information
+========================================
+Current Version: 1.1.0
+Skill Name: emotion-engine
+Last Updated: 2026-02-13
+
+Version 1.1.0 Features:
+  • Mixed Emotion Blending
+  • Long-Term Memory Analysis
+  • Performance Correlations
+  • Web Dashboard
+  • Advanced Meta-Cognition
+```
+
 ---
 
 ## 📝 Available Commands
@@ -492,6 +511,7 @@ Curiosity:
 | `/emotions introspect [depth]` | Introspective reflection | `/emotions introspect 3` |
 | `/emotions personality` | Personality trait analysis | `/emotions personality` |
 | `/emotions triggers` | Emotional trigger analysis | `/emotions triggers` |
+| `/emotions version` | Version information | `/emotions version` |
 | `/emotions blend <e1> <e2> [i1] [i2]` | Emotion blending | `/emotions blend joy curiosity 0.7 0.6` |
 | `/emotions memory [days]` | Long-term memory analysis | `/emotions memory 30` |
 | `/emotions correlations` | Performance correlations | `/emotions correlations` |
