@@ -26,15 +26,30 @@ log_file = os.path.join(logs_dir, "emotion_logs.log")
 log_level = os.getenv('EMOTION_LOG_LEVEL', 'INFO').upper()
 numeric_level = getattr(logging, log_level, logging.INFO)
 
-logging.basicConfig(
-    level=numeric_level,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger('emotion_engine')
+try:
+    logging.basicConfig(
+        level=numeric_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    logger = logging.getLogger('emotion_engine')
+    
+    # Debug: Print log file path and confirm logging setup
+    print(f"DEBUG: Log file path: {log_file}")
+    print(f"DEBUG: Log level: {log_level}")
+    logger.info("Logging system initialized successfully")
+except Exception as e:
+    print(f"ERROR: Failed to configure logging: {e}")
+    # Fallback to console only
+    logging.basicConfig(
+        level=numeric_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+    logger = logging.getLogger('emotion_engine')
 
 # Global emotion engine instance for state persistence
 _global_emotion_engine = None
@@ -306,6 +321,7 @@ def handle_emotions_command(args: List[str]) -> str:
 
             result = '\n'.join(output)
             update_emotions_from_interaction(command_type, original_args, True)
+            logger.info("Emotions command processed successfully, returning result")
             return result
 
         elif args[0] == 'detailed':
