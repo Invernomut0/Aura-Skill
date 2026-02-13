@@ -468,7 +468,7 @@ PERFORMANCE_CORRELATIONS = {
 # Web dashboard configuration
 WEB_DASHBOARD = {
     "enabled": True,
-    "host": "localhost",
+    "host": "0.0.0.0",  # Local access - use SSH tunnel for remote access
     "port": 8080,
     "auth_required": False,  # Set to True for production
     "refresh_interval_seconds": 30,

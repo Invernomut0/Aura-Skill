@@ -840,11 +840,14 @@ def start_dashboard_server():
 
     def run_server():
         try:
+            print(f"Starting server on {WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
             with socketserver.TCPServer((WEB_DASHBOARD['host'], WEB_DASHBOARD['port']), DashboardHTTPRequestHandler) as httpd:
                 print(f"🌐 Dashboard server started at http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
                 httpd.serve_forever()
         except Exception as e:
             print(f"❌ Failed to start dashboard server: {e}")
+            import traceback
+            traceback.print_exc()
 
     dashboard_server_thread = threading.Thread(target=run_server, daemon=True)
     dashboard_server_thread.start()
