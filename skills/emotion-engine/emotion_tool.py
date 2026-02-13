@@ -255,10 +255,24 @@ def handle_emotions_command(args: List[str]) -> str:
                     output.append(f"  {endpoint} - {description}")
                 output.append("")
                 output.append("Open the URL above in your browser to view the dashboard.")
+                output.append("Press Ctrl+C to stop the server.")
 
                 # Update emotions for dashboard interaction
                 update_emotions_from_interaction("dashboard", original_args, True)
-                return '\n'.join(output)
+                result = '\n'.join(output)
+                print(result)
+                
+                # Keep the process alive to maintain the server
+                try:
+                    while server_thread and server_thread.is_alive():
+                        import time
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    logger.info("Dashboard server stopped by user")
+                    print("\n🛑 Dashboard server stopped.")
+                    return "Dashboard server stopped."
+                
+                return result
             except Exception as e:
                 update_emotions_from_interaction("dashboard", original_args, False)
                 return f"❌ Failed to start dashboard server: {str(e)}"

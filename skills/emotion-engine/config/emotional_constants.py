@@ -469,7 +469,7 @@ PERFORMANCE_CORRELATIONS = {
 WEB_DASHBOARD = {
     "enabled": True,
     "host": "0.0.0.0",  # Local access - use SSH tunnel for remote access
-    "port": 9009,
+    "port": 8080,
     "auth_required": False,  # Set to True for production
     "refresh_interval_seconds": 30,
     "max_history_hours": 168,  # 1 week of history
