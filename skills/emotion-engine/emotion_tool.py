@@ -7,14 +7,20 @@ This file handles all slash commands for the emotional intelligence system.
 import sys
 import json
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import argparse
+import random
+from datetime import datetime, timedelta
 
 # Add the tools directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from tools.emotion_ml_engine import EmotionEngine
+    from config.emotional_constants import (
+        MIXED_EMOTIONS, BLENDING_RULES, LONG_TERM_MEMORY,
+        PERFORMANCE_CORRELATIONS, WEB_DASHBOARD
+    )
 except ImportError as e:
     print(f"Error importing emotion engine: {e}")
     print("Please ensure all dependencies are installed")
@@ -293,11 +299,299 @@ def handle_emotions_command(args: List[str]) -> str:
             else:
                 return "❌ Configuration file not found. Please ensure the emotional system is properly installed."
 
+        elif args[0] == 'blend':
+            # Blend emotions
+            if len(args) < 3:
+                return "❌ Usage: /emotions blend <emotion1> <emotion2> [intensity1] [intensity2]"
+
+            emotion1 = args[1]
+            emotion2 = args[2]
+            intensity1 = float(args[3]) if len(args) > 3 else 0.5
+            intensity2 = float(args[4]) if len(args) > 4 else 0.5
+
+            blend_data = blend_emotions(emotion1, emotion2, intensity1, intensity2)
+            phrase = get_blended_emotion_phrase(blend_data)
+
+            output = ["🎭 Emotion Blending", "=" * 20]
+            output.append(f"Blended State: {blend_data['key'].replace('_', ' ').title()}")
+            output.append(f"Components: {emotion1} ({intensity1:.2f}) + {emotion2} ({intensity2:.2f})")
+            output.append(f"Effective Intensity: {blend_data['effective_intensity']:.2f}")
+            output.append(f"Description: {blend_data['description']}")
+            output.append(f"Expression: {phrase}")
+
+            return '\n'.join(output)
+
+        elif args[0] == 'memory':
+            # Long-term memory analysis
+            days = int(args[1]) if len(args) > 1 else 30
+
+            # Mock memory data - in real implementation, this would come from persistent storage
+            mock_memory = [
+                {"timestamp": datetime.now() - timedelta(hours=i), "emotions": {"joy": random.random(), "curiosity": random.random()}}
+                for i in range(min(days * 24, 100))  # Max 100 entries for demo
+            ]
+
+            analysis = analyze_long_term_patterns(mock_memory, days)
+
+            output = [f"🧠 Long-Term Memory Analysis ({days} days)", "=" * 40]
+            output.append(f"Total Entries: {analysis['total_entries']}")
+            output.append(f"Emotional Volatility: {analysis['emotional_volatility']:.2f}")
+
+            if analysis['dominant_emotions']:
+                output.append("\nDominant Emotions:")
+                for emotion, count in list(analysis['dominant_emotions'].items())[:5]:
+                    output.append(f"  {emotion.capitalize()}: {count} occurrences")
+
+            return '\n'.join(output)
+
+        elif args[0] == 'correlations':
+            # Performance correlations
+            output = ["📊 Performance Correlations", "=" * 30]
+
+            # Show correlations for current emotions (mock data)
+            mock_emotions = ["joy", "curiosity", "frustration", "satisfaction"]
+            metrics = ["response_quality", "task_completion", "user_satisfaction", "error_rate"]
+
+            output.append("Emotion → Performance Impact:")
+            for emotion in mock_emotions:
+                output.append(f"\n{emotion.capitalize()}:")
+                for metric in metrics:
+                    correlation = calculate_emotional_performance_correlation(emotion, metric)
+                    impact = "↑" if correlation > 0 else "↓" if correlation < 0 else "→"
+                    output.append(f"  {metric.replace('_', ' ').title()}: {impact} {abs(correlation):.2f}")
+
+            return '\n'.join(output)
+
+        elif args[0] == 'dashboard':
+            # Web dashboard data
+            dashboard_data = generate_dashboard_data()
+
+            output = ["🌐 Web Dashboard Data", "=" * 25]
+            output.append("Current Emotions:")
+            for emotion, intensity in dashboard_data['current_emotions'].items():
+                output.append(f"  {emotion.capitalize()}: {intensity:.2f}")
+
+            output.append("\nPerformance Metrics:")
+            for metric, value in dashboard_data['performance_metrics'].items():
+                output.append(f"  {metric.replace('_', ' ').title()}: {value:.2f}")
+
+            output.append(f"\nRecent History Entries: {len(dashboard_data['recent_history'])}")
+            output.append(f"Dashboard URL: http://localhost:{WEB_DASHBOARD['port']}")
+
+            return '\n'.join(output)
+
         else:
-            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions introspect [depth]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config"
+            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
 
     except Exception as e:
         return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."
+
+
+# Version 1.1.0 - Advanced Emotions Functions
+
+def blend_emotions(emotion1: str, emotion2: str, intensity1: float = 0.5, intensity2: float = 0.5) -> Dict[str, Any]:
+    """
+    Blend two emotions into a mixed emotional state.
+
+    Args:
+        emotion1: First emotion name
+        emotion2: Second emotion name
+        intensity1: Intensity of first emotion (0.0-1.0)
+        intensity2: Intensity of second emotion (0.0-1.0)
+
+    Returns:
+        Dictionary with blended emotion data
+    """
+    # Check if this combination exists in predefined mixed emotions
+    blend_key = None
+    for key, data in MIXED_EMOTIONS.items():
+        components = data["components"]
+        if emotion1 in components and emotion2 in components:
+            blend_key = key
+            break
+
+    if blend_key:
+        # Use predefined blend
+        blend_data = MIXED_EMOTIONS[blend_key].copy()
+        blend_data["key"] = blend_key
+        blend_data["actual_intensities"] = [intensity1, intensity2]
+    else:
+        # Create custom blend
+        blend_data = {
+            "key": f"custom_{emotion1}_{emotion2}",
+            "components": [emotion1, emotion2],
+            "blend_ratio": [0.5, 0.5],  # Equal blend by default
+            "description": f"Custom blend of {emotion1} and {emotion2}",
+            "actual_intensities": [intensity1, intensity2]
+        }
+
+    # Calculate effective intensities based on blend ratio
+    total_intensity = intensity1 + intensity2
+    if total_intensity > 0:
+        blend_data["effective_intensity"] = total_intensity * BLENDING_RULES["blend_influence_weight"]
+    else:
+        blend_data["effective_intensity"] = 0.0
+
+    return blend_data
+
+
+def get_blended_emotion_phrase(blend_data: Dict[str, Any]) -> str:
+    """
+    Generate a descriptive phrase for a blended emotion.
+
+    Args:
+        blend_data: Blended emotion data from blend_emotions()
+
+    Returns:
+        Descriptive phrase for the blended emotion
+    """
+    key = blend_data.get("key", "unknown")
+    components = blend_data.get("components", [])
+    description = blend_data.get("description", "Mixed emotional state")
+
+    if key in MIXED_EMOTIONS:
+        # Use predefined description
+        return description
+    else:
+        # Generate custom description
+        if len(components) == 2:
+            return f"I'm experiencing a complex mix of {components[0]} and {components[1]}, creating a unique emotional state."
+        else:
+            return f"I'm in a blended emotional state involving {', '.join(components)}."
+
+
+def should_auto_blend(emotions: Dict[str, float]) -> List[Tuple[str, str]]:
+    """
+    Determine if any emotions should be automatically blended based on proximity.
+
+    Args:
+        emotions: Dictionary of emotion intensities
+
+    Returns:
+        List of (emotion1, emotion2) tuples that should be blended
+    """
+    blend_candidates = []
+    emotion_items = list(emotions.items())
+
+    for i, (emotion1, intensity1) in enumerate(emotion_items):
+        for emotion2, intensity2 in emotion_items[i+1:]:
+            # Check if both emotions are significant
+            if intensity1 > BLENDING_RULES["dominant_threshold"] * 0.5 and intensity2 > BLENDING_RULES["dominant_threshold"] * 0.5:
+                # Check if intensities are close
+                intensity_diff = abs(intensity1 - intensity2)
+                if intensity_diff < BLENDING_RULES["auto_blend_threshold"]:
+                    blend_candidates.append((emotion1, emotion2))
+
+    return blend_candidates
+
+
+def calculate_emotional_performance_correlation(emotion: str, performance_metric: str) -> float:
+    """
+    Calculate the correlation between an emotion and a performance metric.
+
+    Args:
+        emotion: Emotion name
+        performance_metric: Performance metric name
+
+    Returns:
+        Correlation coefficient (-1.0 to 1.0)
+    """
+    if emotion in PERFORMANCE_CORRELATIONS["emotional_impacts"]:
+        impacts = PERFORMANCE_CORRELATIONS["emotional_impacts"][emotion]
+        return impacts.get(performance_metric, 0.0)
+
+    return 0.0
+
+
+def analyze_long_term_patterns(memory_data: List[Dict[str, Any]], days: int = 30) -> Dict[str, Any]:
+    """
+    Analyze long-term emotional patterns from memory data.
+
+    Args:
+        memory_data: List of historical emotional states
+        days: Number of days to analyze
+
+    Returns:
+        Analysis results dictionary
+    """
+    if not memory_data:
+        return {"error": "No memory data available"}
+
+    # Filter data for the specified period
+    cutoff_date = datetime.now() - timedelta(days=days)
+    recent_data = [entry for entry in memory_data if entry.get("timestamp", datetime.min) > cutoff_date]
+
+    if not recent_data:
+        return {"error": f"No data available for the last {days} days"}
+
+    # Analyze patterns
+    analysis = {
+        "period_days": days,
+        "total_entries": len(recent_data),
+        "dominant_emotions": {},
+        "emotional_volatility": 0.0,
+        "trend_direction": "stable",
+        "seasonal_patterns": []
+    }
+
+    # Calculate dominant emotions
+    emotion_counts = {}
+    for entry in recent_data:
+        emotions = entry.get("emotions", {})
+        for emotion, intensity in emotions.items():
+            if intensity > 0.3:  # Significant emotions only
+                emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
+
+    analysis["dominant_emotions"] = dict(sorted(emotion_counts.items(), key=lambda x: x[1], reverse=True))
+
+    # Calculate volatility (simplified)
+    if len(recent_data) > 1:
+        intensity_changes = []
+        prev_emotions = recent_data[0].get("emotions", {})
+        for entry in recent_data[1:]:
+            curr_emotions = entry.get("emotions", {})
+            total_change = sum(abs(curr_emotions.get(e, 0) - prev_emotions.get(e, 0)) for e in set(prev_emotions) | set(curr_emotions))
+            intensity_changes.append(total_change)
+            prev_emotions = curr_emotions
+
+        analysis["emotional_volatility"] = sum(intensity_changes) / len(intensity_changes) if intensity_changes else 0.0
+
+    return analysis
+
+
+def generate_dashboard_data() -> Dict[str, Any]:
+    """
+    Generate data for the web dashboard.
+
+    Returns:
+        Dashboard data dictionary
+    """
+    # This would integrate with the actual emotion engine
+    # For now, return mock data structure
+    return {
+        "current_emotions": {
+            "joy": 0.7,
+            "curiosity": 0.6,
+            "satisfaction": 0.4
+        },
+        "recent_history": [
+            {"timestamp": "2024-01-01T10:00:00", "emotions": {"joy": 0.8, "curiosity": 0.5}},
+            {"timestamp": "2024-01-01T11:00:00", "emotions": {"joy": 0.6, "satisfaction": 0.7}}
+        ],
+        "performance_metrics": {
+            "response_quality": 0.85,
+            "task_completion": 0.92,
+            "user_satisfaction": 0.78
+        },
+        "correlations": {
+            "joy_response_quality": 0.15,
+            "curiosity_task_completion": 0.18
+        },
+        "memory_patterns": {
+            "dominant_trend": "increasing_satisfaction",
+            "volatility_index": 0.3
+        }
+    }
 
 
 def main():

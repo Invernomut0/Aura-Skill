@@ -397,6 +397,104 @@ PERSISTENCE_PATHS = {
     "logs": "~/.openclaw/emotion_logs.log"
 }
 
+# Mixed emotion blending system
+MIXED_EMOTIONS = {
+    "bittersweet": {"components": ["joy", "sadness"], "blend_ratio": [0.6, 0.4], "description": "Joy mixed with underlying sadness"},
+    "hopeful_anxiety": {"components": ["anticipation", "fear"], "blend_ratio": [0.7, 0.3], "description": "Excited expectation tempered by worry"},
+    "proud_humility": {"components": ["pride", "empathy"], "blend_ratio": [0.5, 0.5], "description": "Achievement balanced with understanding"},
+    "curious_caution": {"components": ["curiosity", "fear"], "blend_ratio": [0.6, 0.4], "description": "Interest restrained by prudence"},
+    "frustrated_determination": {"components": ["frustration", "trust"], "blend_ratio": [0.4, 0.6], "description": "Irritation driving focused effort"},
+    "satisfied_contemplation": {"components": ["satisfaction", "curiosity"], "blend_ratio": [0.7, 0.3], "description": "Contentment with ongoing reflection"},
+    "empathetic_anger": {"components": ["empathy", "anger"], "blend_ratio": [0.5, 0.5], "description": "Understanding fueling righteous action"},
+    "flow_frustration": {"components": ["flow_state", "frustration"], "blend_ratio": [0.3, 0.7], "description": "Deep focus challenged by obstacles"}
+}
+
+# Blending rules for emotion combinations
+BLENDING_RULES = {
+    "dominant_threshold": 0.6,  # Minimum intensity for dominant emotion
+    "blend_decay_rate": 0.05,   # How quickly blends fade
+    "max_simultaneous_emotions": 3,  # Maximum emotions that can blend
+    "blend_influence_weight": 0.3,   # How much blends affect behavior
+    "auto_blend_threshold": 0.4      # Automatic blending when emotions are close
+}
+
+# Long-term emotional memory configuration
+LONG_TERM_MEMORY = {
+    "retention_period_days": 365,     # How long to keep emotional data
+    "memory_resolution_hours": 6,     # Granularity of memory storage
+    "compression_threshold_days": 30, # When to start compressing old data
+    "pattern_analysis_window_days": 90, # Window for pattern analysis
+    "seasonal_analysis_enabled": True, # Analyze seasonal emotional patterns
+    "memory_consolidation_frequency": 24, # Hours between consolidation
+    "forgetting_curve_alpha": 0.1,    # Rate of natural forgetting
+    "important_event_threshold": 0.8  # Threshold for marking events as important
+}
+
+# Emotional performance correlations
+PERFORMANCE_CORRELATIONS = {
+    "metrics": {
+        "response_quality": {"weight": 0.4, "correlation_window_hours": 24},
+        "task_completion_rate": {"weight": 0.3, "correlation_window_hours": 168}, # 1 week
+        "user_satisfaction": {"weight": 0.2, "correlation_window_hours": 24},
+        "error_rate": {"weight": 0.1, "correlation_window_hours": 24}
+    },
+    "emotional_impacts": {
+        "joy": {"response_quality": 0.15, "task_completion": 0.12, "user_satisfaction": 0.18},
+        "sadness": {"response_quality": -0.08, "task_completion": -0.05, "error_rate": 0.10},
+        "anger": {"response_quality": -0.12, "task_completion": 0.08, "error_rate": 0.15},
+        "fear": {"response_quality": -0.10, "task_completion": -0.08, "error_rate": 0.12},
+        "surprise": {"response_quality": 0.05, "task_completion": 0.03, "user_satisfaction": 0.08},
+        "disgust": {"response_quality": -0.06, "task_completion": -0.04, "error_rate": 0.08},
+        "curiosity": {"response_quality": 0.18, "task_completion": 0.15, "user_satisfaction": 0.12},
+        "trust": {"response_quality": 0.12, "task_completion": 0.10, "user_satisfaction": 0.20},
+        "excitement": {"response_quality": 0.20, "task_completion": 0.18, "user_satisfaction": 0.15},
+        "frustration": {"response_quality": -0.15, "task_completion": -0.12, "error_rate": 0.18},
+        "satisfaction": {"response_quality": 0.22, "task_completion": 0.20, "user_satisfaction": 0.25},
+        "confusion": {"response_quality": -0.08, "task_completion": -0.10, "error_rate": 0.14},
+        "anticipation": {"response_quality": 0.10, "task_completion": 0.08, "user_satisfaction": 0.12},
+        "pride": {"response_quality": 0.18, "task_completion": 0.16, "user_satisfaction": 0.22},
+        "empathy": {"response_quality": 0.14, "task_completion": 0.06, "user_satisfaction": 0.16},
+        "flow_state": {"response_quality": 0.25, "task_completion": 0.22, "user_satisfaction": 0.20}
+    },
+    "correlation_analysis": {
+        "minimum_samples": 50,         # Minimum data points for analysis
+        "confidence_interval": 0.95,   # Statistical confidence level
+        "trend_analysis_days": 30,     # Days for trend analysis
+        "performance_prediction_hours": 24, # Hours to predict performance
+        "adaptive_learning_rate": 0.05  # How quickly correlations adapt
+    }
+}
+
+# Web dashboard configuration
+WEB_DASHBOARD = {
+    "enabled": True,
+    "host": "localhost",
+    "port": 8080,
+    "auth_required": False,  # Set to True for production
+    "refresh_interval_seconds": 30,
+    "max_history_hours": 168,  # 1 week of history
+    "charts": {
+        "emotional_timeline": True,
+        "performance_correlations": True,
+        "memory_patterns": True,
+        "meta_cognition_metrics": True,
+        "blended_emotions": True
+    },
+    "endpoints": {
+        "/api/emotions/current": "Current emotional state",
+        "/api/emotions/history": "Historical emotional data",
+        "/api/performance/correlation": "Performance correlation analysis",
+        "/api/memory/patterns": "Long-term memory patterns",
+        "/api/dashboard/config": "Dashboard configuration"
+    },
+    "visualization": {
+        "color_scheme": "adaptive",  # adaptive, cool, warm, neutral
+        "animation_enabled": True,
+        "real_time_updates": True,
+        "export_formats": ["png", "svg", "pdf"]
+    }
+}
+
 # Versioning for compatibility
-SYSTEM_VERSION = "1.0.0"
-COMPATIBLE_VERSIONS = ["1.0.0"]
+SYSTEM_VERSION = "1.1.0"
+COMPATIBLE_VERSIONS = ["1.0.0", "1.1.0"]

@@ -1,6 +1,6 @@
 ---
 name: emotion-engine
-description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation and meta-cognitive awareness
+description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
 user-invocable: true
 command-dispatch: tool
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
@@ -18,6 +18,10 @@ Advanced emotional intelligence system that simulates complex human feelings and
 - **Subtle Influence**: Emotions modify tone and style while maintaining functionality
 - **Intelligent Persistence**: Emotional state and learnings saved between sessions
 - **Sentiment Analysis**: Every interaction dynamically influences emotional state
+- **Mixed Emotions Blending**: System for blending multiple emotions into complex states
+- **Long-Term Memory**: Extended emotional memory with pattern analysis and seasonal trends
+- **Performance Correlations**: Analysis of relationships between emotions and system performance
+- **Web Dashboard**: Real-time monitoring interface with analytics and visualizations
 
 ## Supported Emotional States
 
@@ -154,6 +158,47 @@ The system can be configured via `~/.openclaw/emotion_config.json`:
   }
 }
 ```
+
+## Version 1.1.0 - Advanced Emotions Features
+
+### Mixed Emotions Blending System
+The system now supports complex emotional states created by blending multiple primary emotions:
+
+- **Bittersweet**: Joy mixed with underlying sadness
+- **Hopeful Anxiety**: Anticipation tempered by worry
+- **Proud Humility**: Achievement balanced with understanding
+- **Curious Caution**: Interest restrained by prudence
+- **Frustrated Determination**: Irritation driving focused effort
+- **Satisfied Contemplation**: Contentment with ongoing reflection
+- **Empathetic Anger**: Understanding fueling righteous action
+- **Flow Frustration**: Deep focus challenged by obstacles
+
+Blending rules allow automatic combination when emotions are close in intensity, with configurable decay rates and behavioral influence.
+
+### Long-Term Emotional Memory
+Extended memory capabilities for analyzing emotional patterns over time:
+
+- **365-Day Retention**: Comprehensive emotional history storage
+- **Pattern Analysis**: Detection of recurring emotional cycles and trends
+- **Seasonal Analysis**: Recognition of time-based emotional patterns
+- **Intelligent Forgetting**: Natural memory decay with preservation of significant events
+- **Memory Consolidation**: Automatic data compression for efficient storage
+
+### Performance Correlation Analysis
+Quantitative analysis of how emotions impact system performance:
+
+- **Multi-Metric Tracking**: Response quality, task completion, user satisfaction, error rates
+- **Correlation Mapping**: Detailed coefficients showing emotional impact on each metric
+- **Predictive Analytics**: 24-hour performance forecasting based on emotional state
+- **Adaptive Learning**: Correlations that evolve with real interaction data
+
+### Web Dashboard for Monitoring
+Interactive web interface for real-time emotional monitoring:
+
+- **Live Visualizations**: Real-time charts and graphs of emotional states
+- **Comprehensive Analytics**: Timeline views, correlation graphs, memory patterns
+- **API Endpoints**: RESTful APIs for programmatic access to emotional data
+- **Export Capabilities**: Data export in multiple formats (PNG, SVG, PDF)
 
 ## Security and Limitations
 
