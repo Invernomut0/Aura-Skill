@@ -496,5 +496,5 @@ WEB_DASHBOARD = {
 }
 
 # Versioning for compatibility
-SYSTEM_VERSION = "1.1.0"
-COMPATIBLE_VERSIONS = ["1.0.0", "1.1.0"]
+SYSTEM_VERSION = "1.2.0"
+COMPATIBLE_VERSIONS = ["1.0.0", "1.1.0", "1.2.0"]

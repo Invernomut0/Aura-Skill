@@ -9,6 +9,7 @@
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
+- [Changelog](#changelog)
 - [Installation](#installation)
 - [Python Dependencies](#python-dependencies)
 - [Configuration](#configuration)
@@ -95,7 +96,29 @@ Based on the Big Five + AI-specific traits:
 
 ---
 
-## 🚀 Version 1.1.0 - Advanced Emotions Features
+## � Changelog
+
+### Version 1.2.0 - Advanced Emotions + Multilingual Support (2026-02-13)
+- **🌍 Multilingual Support**: Automatic language detection and translation for 100+ languages
+- **🔄 Auto-Translation Pipeline**: Transparent translation to English for emotion analysis
+- **📦 Python Dependencies**: Automatic installation of numpy, deep-translator, and langdetect
+- **🧪 Multilingual Testing**: Test scripts for Italian, Spanish, French, German
+- **📚 Documentation**: Complete multilingual documentation and examples
+- **🔧 Installation Scripts**: Updated INSTALL.sh and setup scripts with dependency management
+
+### Version 1.1.0 - Advanced Emotions Features (2026-02-12)
+- **🎭 Mixed Emotion Blending**: Dynamic combination of multiple emotions into complex states
+- **🧠 Long-Term Memory Analysis**: Pattern recognition and volatility tracking across sessions
+- **📊 Performance Correlations**: Mapping between emotions and system performance
+- **🌐 Web Dashboard**: Local web server (http://localhost:8080) with real-time monitoring
+- **📈 Interactive Charts**: Dynamic visualization of emotional trends and correlations
+- **🔍 Meta-Cognition Enhancements**: Advanced self-awareness and introspection capabilities
+- **💾 Enhanced Persistence**: Improved data storage and backup mechanisms
+- **⚙️ Advanced Configuration**: Fine-tuned control over emotional parameters
+
+---
+
+## �🚀 Version 1.2.0 - Advanced Emotions + Multilingual Support
 
 ### 🎭 Mixed Emotion Blending
 - **Dynamic Emotion Combination**: Blend multiple emotions into complex states
@@ -486,7 +509,7 @@ Predicted Emotions:
   😊 Joy: ██████░░░░ 58.0%
 ```
 
-#### 4. Emotion Blending (v1.1.0)
+#### 4. Emotion Blending (v1.2.0)
 
 ```bash
 $ /emotions blend joy curiosity 0.7 0.6
@@ -500,7 +523,7 @@ Description: Custom blend of joy and curiosity
 Expression: I'm experiencing a complex mix of joy and curiosity, creating a unique emotional state.
 ```
 
-#### 5. Long-Term Memory Analysis (v1.1.0)
+#### 5. Long-Term Memory Analysis (v1.2.0)
 
 ```bash
 $ /emotions memory 30
@@ -517,7 +540,7 @@ Dominant Emotions:
   Trust: 121 occurrences
 ```
 
-#### 6. Performance Correlations (v1.1.0)
+#### 6. Performance Correlations (v1.2.0)
 
 ```bash
 $ /emotions correlations
@@ -544,15 +567,17 @@ $ /emotions version
 
 📦 Emotion Engine Version Information
 ========================================
-Current Version: 1.1.0
+Current Version: 1.2.0
 Skill Name: emotion-engine
 Last Updated: 2026-02-13
 
-Version 1.1.0 Features:
+Version 1.2.0 Features:
   • Mixed Emotion Blending
   • Long-Term Memory Analysis
   • Performance Correlations
   • Web Dashboard
+  • Advanced Meta-Cognition
+  • Multilingual Support (100+ languages)
   • Advanced Meta-Cognition
 ```
 
@@ -1149,13 +1174,19 @@ git commit -m "feat: add nostalgia emotion with memory triggers"
 
 ### Future Roadmap
 
-#### Version 1.1 - Advanced Emotions
-- [ ] Mixed emotion system (blending)
-- [ ] Long-term emotional memory
-- [ ] Correlations between emotions and performance
-- [ ] Web dashboard for monitoring
+#### Version 1.1 - Advanced Emotions ✅ COMPLETED
+- [x] Mixed emotion system (blending)
+- [x] Long-term emotional memory
+- [x] Correlations between emotions and performance
+- [x] Web dashboard for monitoring
 
-#### Version 1.2 - Social Intelligence
+#### Version 1.2 - Multilingual Support ✅ COMPLETED
+- [x] Automatic language detection (100+ languages)
+- [x] Auto-translation to English for emotion analysis
+- [x] Transparent translation pipeline
+- [x] No keyword maintenance for multiple languages
+
+#### Version 1.3 - Social Intelligence
 - [ ] User personality recognition
 - [ ] Dynamic adaptation to communication style
 - [ ] Emotional mirroring
@@ -1199,7 +1230,7 @@ This project is released under the MIT license. See the `LICENSE` file for full 
 
 ## � Recent Improvements
 
-### Version 1.1.0 - Advanced Emotions System
+### Version 1.2.0 - Advanced Emotions + Multilingual Support
 
 #### 🎭 Mixed Emotion Blending System
 - **Complex Emotional States**: New blended emotions like "bittersweet" (joy+sadness), "hopeful_anxiety" (anticipation+fear), "proud_humility" (pride+empathy)

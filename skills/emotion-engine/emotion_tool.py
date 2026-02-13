@@ -475,12 +475,13 @@ def handle_emotions_command(args: List[str]) -> str:
             output.append(f"Skill Name: emotion-engine")
             output.append(f"Last Updated: 2026-02-13")
             output.append("")
-            output.append("Version 1.1.0 Features:")
+            output.append("Version 1.2.0 Features:")
             output.append("  • Mixed Emotion Blending")
             output.append("  • Long-Term Memory Analysis")
             output.append("  • Performance Correlations")
             output.append("  • Web Dashboard")
             output.append("  • Advanced Meta-Cognition")
+            output.append("  • Multilingual Support")
 
             return '\n'.join(output)
 
@@ -559,7 +560,7 @@ def handle_emotions_command(args: List[str]) -> str:
         return f"❌ Error executing emotions command: {str(e)}\n\nPlease check that the emotional intelligence system is properly configured."
 
 
-# Version 1.1.0 - Advanced Emotions Functions
+# Version 1.2.0 - Advanced Emotions Functions
 
 def blend_emotions(emotion1: str, emotion2: str, intensity1: float = 0.5, intensity2: float = 0.5) -> Dict[str, Any]:
     """

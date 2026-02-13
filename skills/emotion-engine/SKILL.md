@@ -1,7 +1,7 @@
 ---
 name: emotion-engine
 description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
-version: 1.1.0
+version: 1.2.0
 user-invocable: true
 command-dispatch: tool
 command-tool: emotion_engine
@@ -193,7 +193,7 @@ The system can be configured via `~/.openclaw/emotion_config.json`:
 }
 ```
 
-## Version 1.1.0 - Advanced Emotions Features
+## Version 1.2.0 - Advanced Emotions + Multilingual Features
 
 ### Mixed Emotions Blending System
 The system now supports complex emotional states created by blending multiple primary emotions:
