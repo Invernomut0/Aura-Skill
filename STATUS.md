@@ -23,7 +23,7 @@
 - ✅ Optimization recommendations
 
 #### 🌐 Web Dashboard
-- ✅ Local web server implementation (http://localhost:8080)
+- ✅ Local web server implementation (http://localhost:8081)
 - ✅ Real-time monitoring interface with live HTML dashboard
 - ✅ Interactive charts and visualizations
 - ✅ Performance metrics dashboard with API endpoints
