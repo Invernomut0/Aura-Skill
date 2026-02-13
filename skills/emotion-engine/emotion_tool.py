@@ -781,6 +781,9 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         """Handle GET requests."""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        
+        logger.info(f"Received GET request for path: {path}")
+        print(f"📨 GET request: {path}")
 
         if path == '/':
             self.send_dashboard_html()
@@ -799,7 +802,10 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def send_dashboard_html(self):
         """Send the main dashboard HTML page."""
-        dashboard_data = generate_dashboard_data()
+        try:
+            logger.info("Generating dashboard HTML...")
+            dashboard_data = generate_dashboard_data()
+            logger.info(f"Dashboard data generated: {len(dashboard_data)} keys")
 
         # Prepare data for charts
         primary_emotions = dashboard_data['current_emotions']
@@ -1317,6 +1323,13 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
         self.wfile.write(html_template.encode('utf-8'))
+        logger.info("Dashboard HTML sent successfully")
+        
+        except Exception as e:
+            logger.error(f"Error generating dashboard HTML: {e}")
+            import traceback
+            traceback.print_exc()
+            self.send_error(500, f"Internal Server Error: {str(e)}")
 
     def send_json_response(self, data):
         """Send a JSON response."""
