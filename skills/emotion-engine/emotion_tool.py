@@ -120,6 +120,12 @@ def format_personality(traits: Dict[str, float]) -> str:
 def handle_emotions_command(args: List[str]) -> str:
     """Handle the main /emotions command."""
     try:
+        # Parse arguments to handle different calling conventions
+        # OpenClaw might pass: ['/emotions', 'dashboard'] or just ['dashboard']
+        if len(args) > 0 and args[0].startswith('/emotions'):
+            # Remove the command prefix if present
+            args = args[1:] if len(args) > 1 else []
+
         engine = EmotionEngine()
 
         if len(args) == 0:
