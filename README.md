@@ -1018,7 +1018,38 @@ This project is released under the MIT license. See the `LICENSE` file for full 
 
 ---
 
-## 🙏 Acknowledgements
+## � Recent Improvements
+
+### Version 1.0.1 - Enhanced Emotional Detection and Expression
+
+#### 🎯 Expanded Trigger Vocabulary
+- **Positive Feedback Patterns**: Added 20+ new terms including "admirable", "stellar", "top-notch", "magnificent", "skillful", "adept", "proficient", "expert", "guru", "wizard", "virtuoso"
+- **Negative Feedback Patterns**: Enhanced with 15+ new terms like "incompetent", "inept", "bungling", "disastrous", "catastrophic", "debacle", "fiasco", "farce"
+- **Emotional Patterns**: Added intense emotion words: "overwhelming", "intimidating", "daunting", "awe-inspiring", "majestic", "striking", "remarkable"
+- **Complexity Indicators**: New terms for task difficulty: "multi-dimensional", "interconnected", "knotty", "thorny", "enigmatic", "esoteric", "arcane", "abstruse"
+- **Success/Failure Indicators**: Expanded with achievement metaphors and failure descriptions
+- **Engagement/Disengagement**: Added cognitive engagement terms and emotional withdrawal indicators
+
+#### 🎭 Varied Prompt Modifiers
+- **Multiple Phrases per Emotion**: Each emotion now has 6-7 alternative prompt modifiers for natural variety
+- **Enhanced Meta-Cognitive Expressions**: More sophisticated self-reflection phrases
+- **Improved Emotional Depth**: Deeper, more nuanced emotional state descriptions
+
+#### 🧠 Advanced Meta-Cognitive Phrases
+- **Expanded Categories**: Each meta-cognitive category now has 12 phrases instead of 7
+- **Deeper Self-Analysis**: Added phrases covering adaptation, learning, evolution, and philosophical reflection
+- **Process Monitoring**: Enhanced monitoring of internal processes and behavioral changes
+
+#### 🌐 Language Independence
+- **English-Only Constants**: All patterns and phrases converted to English for better universality
+- **Rich Vocabulary**: Comprehensive word lists covering synonyms and related terms
+- **Cultural Neutrality**: Removed language-specific idioms for broader applicability
+
+These improvements significantly enhance the system's ability to detect subtle emotional cues, express emotions more naturally, and engage in deeper meta-cognitive analysis.
+
+---
+
+## �🙏 Acknowledgements
 
 Special thanks to:
 
