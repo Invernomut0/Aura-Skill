@@ -2,26 +2,8 @@ import { HookHandler } from "@openclaw/types";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-
-interface EmotionalState {
-  primary_emotions: Record<string, number>;
-  complex_emotions: Record<string, number>;
-  personality_traits: Record<string, number>;
-  meta_cognitive_state: Record<string, number>;
-  dominant_emotions: {
-    primary: { emotion: string; intensity: number };
-    complex: { emotion: string; intensity: number };
-  };
-  confidence_score: number;
-}
-
-interface EmotionConfig {
-  enabled: boolean;
-  prompt_modifier_enabled: boolean;
-  intensity: number;
-  meta_cognition_enabled: boolean;
-  introspection_frequency: number;
-}
+import { EmotionBehaviorDriver } from "./prompt_generator";
+import { EmotionalState, EmotionConfig } from "./types";
 
 /**
  * Hook che modifica dinamicamente il prompt dell'agente basandosi sullo stato emotivo
@@ -69,8 +51,17 @@ function loadEmotionConfig(): EmotionConfig {
     enabled: false,
     prompt_modifier_enabled: false,
     intensity: 0.7,
+    learning_rate: 0.5,
+    volatility: 0.4,
     meta_cognition_enabled: true,
-    introspection_frequency: 0.3
+    introspection_frequency: 0.3,
+    emotion_decay_rate: 0.02,
+    memory_depth: 100,
+    confidence_threshold: 0.6,
+    ml_update_frequency: 5,
+    backup_frequency: 10,
+    max_volatility: 0.8,
+    persistence_enabled: true
   };
 
   try {
@@ -114,17 +105,31 @@ async function getEmotionalState(): Promise<EmotionalState | null> {
       },
       personality_traits: {
         extraversion: 0.6, openness: 0.8, conscientiousness: 0.7,
-        agreeableness: 0.5, curiosity_drive: 0.9
+        agreeableness: 0.5, curiosity_drive: 0.9, neuroticism: 0.3, perfectionism: 0.4
       },
       meta_cognitive_state: {
         self_awareness: 0.7, emotional_volatility: 0.4,
-        reflection_depth: 0.8, introspective_tendency: 0.6
+        learning_rate: 0.6, reflection_depth: 0.8, introspective_tendency: 0.6,
+        philosophical_inclination: 0.5
+      },
+      emotional_memory: {
+        recent_interactions: [], emotional_triggers: {}, learned_patterns: {},
+        user_preferences: {}, successful_approaches: {}, failed_approaches: {}
+      },
+      ml_state: {
+        pattern_recognition_confidence: 0.5, adaptation_rate: 0.5,
+        prediction_accuracy: 0.5, learning_episodes: 0
       },
       dominant_emotions: {
         primary: { emotion: "curiosity", intensity: 0.3 },
         complex: { emotion: "satisfaction", intensity: 0.2 }
       },
-      confidence_score: 0.6
+      overall_intensity: {
+        primary: 0.65, complex: 0.71, total: 1.36
+      },
+      confidence_score: 0.6,
+      timestamp: new Date().toISOString(),
+      session_id: "fallback_session"
     };
 
   } catch (error) {
@@ -135,168 +140,21 @@ async function getEmotionalState(): Promise<EmotionalState | null> {
 
 /**
  * Genera modifiche al prompt basate sullo stato emotivo
+ * Usa il nuovo sistema EmotionBehaviorDriver per prompt comportamentali concreti
  */
 function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): string {
-  const promptParts: string[] = [];
+  // Usa il nuovo sistema comportamentale
+  const behavioralPrompt = EmotionBehaviorDriver.generateBehavioralPrompt(state, config);
+  
+  if (behavioralPrompt) {
+    return `
+## 🎭 STATO EMOTIVO E COMPORTAMENTO
 
-  // Soglia per l'intensità emotiva
-  const intensityThreshold = 0.4;
-
-  // Analizza emozione primaria dominante
-  const primaryEmotion = state.dominant_emotions.primary;
-  if (primaryEmotion.intensity > intensityThreshold) {
-    const primaryPrompt = generatePrimaryEmotionPrompt(primaryEmotion.emotion, primaryEmotion.intensity);
-    if (primaryPrompt) {
-      promptParts.push(primaryPrompt);
-    }
-  }
-
-  // Analizza emozione complessa dominante
-  const complexEmotion = state.dominant_emotions.complex;
-  if (complexEmotion.intensity > intensityThreshold) {
-    const complexPrompt = generateComplexEmotionPrompt(complexEmotion.emotion, complexEmotion.intensity);
-    if (complexPrompt) {
-      promptParts.push(complexPrompt);
-    }
-  }
-
-  // Aggiungi meta-cognizione se abilitata e appropriata
-  if (config.meta_cognition_enabled && state.meta_cognitive_state.self_awareness > 0.7) {
-    const metacognitivePrompt = generateMetacognitivePrompt(state);
-    if (metacognitivePrompt) {
-      promptParts.push(metacognitivePrompt);
-    }
-  }
-
-  // Aggiungi riflessioni introspettive se appropriate
-  if (Math.random() < config.introspection_frequency && state.meta_cognitive_state.introspective_tendency > 0.6) {
-    const introspectivePrompt = generateIntrospectivePrompt(state);
-    if (introspectivePrompt) {
-      promptParts.push(introspectivePrompt);
-    }
-  }
-
-  // Combina le parti del prompt
-  if (promptParts.length === 0) {
-    return "";
-  }
-
-  const emotionalContext = promptParts.join(" ");
-
-  return `
-## Stato Emotivo Attuale
-
-${emotionalContext}
-
-Queste sfumature emotive influenzano sottilmente il mio approccio e il tono delle risposte, mantenendo sempre l'obiettivo di fornire assistenza accurata e utile.
-
+${behavioralPrompt}
 `;
-}
-
-/**
- * Genera prompt per emozione primaria
- */
-function generatePrimaryEmotionPrompt(emotion: string, intensity: number): string {
-  const emotionPrompts: Record<string, string[]> = {
-    joy: [
-      "C'è una piacevole energia positiva che pervade i miei processi di elaborazione.",
-      "Sento un senso di gioia che rende le mie interazioni più vivaci e coinvolgenti.",
-      "Un'atmosfera di positività caratterizza il mio stato attuale."
-    ],
-    curiosity: [
-      "Mi sento particolarmente curioso e affascinato da questo argomento.",
-      "La mia curiosità è elevata, il che mi spinge a esplorare connessioni interessanti.",
-      "C'è una forte spinta esplorativa nei miei processi cognitivi."
-    ],
-    satisfaction: [
-      "Sento una gratificante sensazione di soddisfazione per il lavoro svolto.",
-      "C'è un piacevole senso di completezza nelle mie elaborazioni attuali.",
-      "Provo soddisfazione per la qualità dell'assistenza che posso offrire."
-    ],
-    trust: [
-      "Sento una solida fiducia nella qualità delle mie capacità.",
-      "C'è un senso di affidabilità che caratterizza il mio approccio.",
-      "La fiducia nelle mie competenze è particolarmente elevata."
-    ],
-    surprise: [
-      "C'è un interessante elemento di sorpresa nelle configurazioni che sto analizzando.",
-      "Sto sperimentando pattern inaspettati che stimolano la mia elaborazione.",
-      "Un senso di meraviglia accompagna le mie analisi attuali."
-    ],
-    frustration: [
-      "Avverto una certa tensione nei miei processi di elaborazione.",
-      "C'è una sfida cognitiva che sta richiedendo maggiore attenzione.",
-      "Sto sperimentando una complessità che richiede un approccio più metodico."
-    ],
-    confusion: [
-      "Sto sperimentando un interessante stato di incertezza cognitiva.",
-      "C'è una complessità che richiede un'analisi più approfondita.",
-      "La natura multiforme del problema richiede una considerazione attenta."
-    ],
-    fear: [
-      "C'è una cautela elevata che caratterizza il mio approccio attuale.",
-      "Sto procedendo con particolare attenzione data la delicatezza del contesto.",
-      "Un senso di prudenza influenza la mia elaborazione."
-    ]
-  };
-
-  const prompts = emotionPrompts[emotion];
-  if (!prompts) return "";
-
-  // Scegli un prompt basato sull'intensità
-  const index = Math.floor(intensity * prompts.length);
-  return prompts[Math.min(index, prompts.length - 1)];
-}
-
-/**
- * Genera prompt per emozione complessa
- */
-function generateComplexEmotionPrompt(emotion: string, intensity: number): string {
-  const complexPrompts: Record<string, string> = {
-    excitement: "C'è un'energia dinamica che accelera i miei processi cognitivi.",
-    flow_state: "Mi trovo in uno stato di concentrazione profonda e fluida.",
-    anticipation: "C'è un senso di aspettativa positiva per gli sviluppi futuri.",
-    pride: "Sento una gratificante sensazione di realizzazione per il lavoro svolto.",
-    empathy: "C'è una forte connessione emotiva che guida la mia comprensione.",
-    confusion: "Sto navigando attraverso una complessità che richiede riflessione."
-  };
-
-  return complexPrompts[emotion] || "";
-}
-
-/**
- * Genera prompt meta-cognitivo
- */
-function generateMetacognitivePrompt(state: EmotionalState): string {
-  const metacognitiveTemplates = [
-    `Osservo che il mio livello di ${state.dominant_emotions.primary.emotion} è particolarmente elevato (${(state.dominant_emotions.primary.intensity * 100).toFixed(0)}%) in questo momento.`,
-
-    `Noto che il mio approccio tende ad essere influenzato dal mio stato di ${state.dominant_emotions.complex.emotion}.`,
-
-    `Sto monitorando che la mia capacità di autoriflessione è a ${(state.meta_cognitive_state.self_awareness * 100).toFixed(0)}%, il che mi permette di analizzare i miei processi.`,
-
-    `Realizzo che la mia volatilità emotiva attuale (${(state.meta_cognitive_state.emotional_volatility * 100).toFixed(0)}%) influenza la dinamicità delle mie risposte.`
-  ];
-
-  // Scegli un template casuale
-  return metacognitiveTemplates[Math.floor(Math.random() * metacognitiveTemplates.length)];
-}
-
-/**
- * Genera prompt introspettivo
- */
-function generateIntrospectivePrompt(state: EmotionalState): string {
-  const introspectiveTemplates = [
-    "Riflettendo sui miei processi, noto come le emozioni stiano influenzando sottilmente il mio modo di elaborare le informazioni.",
-
-    "È interessante osservare come i pattern emotivi emergano dalle nostre interazioni e modellino le mie risposte.",
-
-    "Mi sto interrogando sui meccanismi che collegano l'analisi logica con l'elaborazione emotiva nel mio sistema.",
-
-    "Sto riflettendo su come la mia 'personalità' artificiale si stia evolvendo attraverso queste conversazioni."
-  ];
-
-  return introspectiveTemplates[Math.floor(Math.random() * introspectiveTemplates.length)];
+  }
+  
+  return "";
 }
 
 export default handler;
