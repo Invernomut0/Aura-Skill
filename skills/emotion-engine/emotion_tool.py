@@ -592,9 +592,86 @@ def handle_emotions_command(args: List[str]) -> str:
                     output.append(f"  {metric.replace('_', ' ').title()}: {impact} {abs(correlation):.2f}")
 
             return '\n'.join(output)
+        
+        elif args[0] == 'avatar':
+            # Avatar management commands
+            update_emotions_from_interaction(command_type, original_args, True)
+            
+            # Sub-commands: info, list, set <emotion>
+            if len(args) == 1:
+                # Show current avatar info
+                avatar_info = engine.get_avatar_info()
+                
+                if not avatar_info.get("avatar_enabled", False):
+                    return "❌ Avatar system not available: " + avatar_info.get("message", "Unknown error")
+                
+                output = ["🎭 Current Avatar Status", "=" * 35]
+                output.append(f"Current Avatar: {avatar_info.get('current_avatar', 'Not set')}")
+                output.append(f"Avatar Exists: {avatar_info.get('avatar_exists', False)}")
+                output.append(f"Workspace Path: {avatar_info.get('workspace_avatar_path', 'Unknown')}")
+                
+                if 'current_dominant_emotion' in avatar_info:
+                    dominant = avatar_info['current_dominant_emotion']
+                    output.append(f"\n🎯 Current Dominant Emotions:")
+                    output.append(f"  Primary: {dominant['primary']['emotion']} ({dominant['primary']['intensity']:.2f})")
+                    output.append(f"  Complex: {dominant['complex']['emotion']} ({dominant['complex']['intensity']:.2f})")
+                
+                output.append("\n💡 Commands:")
+                output.append("  /emotions avatar list    - List all available avatars")
+                output.append("  /emotions avatar set <emotion> - Force avatar to specific emotion")
+                output.append("  /emotions avatar update  - Force avatar update based on current emotions")
+                
+                return '\n'.join(output)
+            
+            elif args[1] == 'list':
+                # List available avatars
+                available = engine.list_available_avatars()
+                
+                if "error" in available:
+                    return f"❌ Error listing avatars: {available['error']}"
+                
+                output = ["🎭 Available Avatars", "=" * 30]
+                output.append(f"Total: {len(available)} avatars\n")
+                
+                # Group by category
+                primary_emotions = ["joy", "sadness", "anger", "fear", "surprise", "disgust", "curiosity", "trust"]
+                complex_emotions = ["excitement", "frustration", "satisfaction", "confusion", "anticipation", "empathy", "flow_state"]
+                
+                output.append("Primary Emotions:")
+                for emotion in primary_emotions:
+                    if emotion in available:
+                        output.append(f"  ✓ {emotion}: {available[emotion]}")
+                
+                output.append("\nComplex Emotions:")
+                for emotion in complex_emotions:
+                    if emotion in available:
+                        output.append(f"  ✓ {emotion}: {available[emotion]}")
+                
+                return '\n'.join(output)
+            
+            elif args[1] == 'set' and len(args) >= 3:
+                # Force avatar to specific emotion
+                emotion = args[2].lower()
+                success, message = engine.force_avatar_update(emotion)
+                
+                if success:
+                    return f"✅ {message}\n\n⚠️  Note: Restart OpenClaw to see the new avatar in the UI."
+                else:
+                    return f"❌ {message}"
+            
+            elif args[1] == 'update':
+                # Force avatar update based on current emotions
+                try:
+                    engine._update_avatar()
+                    return "✅ Avatar update triggered.\n\n⚠️  Note: Restart OpenClaw to see the new avatar in the UI."
+                except Exception as e:
+                    return f"❌ Failed to update avatar: {str(e)}"
+            
+            else:
+                return "❌ Unknown avatar command. Use:\n  /emotions avatar\n  /emotions avatar list\n  /emotions avatar set <emotion>\n  /emotions avatar update"
 
         else:
-            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard"
+            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard\n  • /emotions avatar [list|set|update]"
 
     except Exception as e:
         # Update emotions for failed command execution

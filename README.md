@@ -1,6 +1,49 @@
 # 🎭 OpenClaw Emotional Intelligence System
 
+**Version: 1.3.0 – Dynamic Avatar Management**
+
 **Advanced emotional intelligence system for OpenClaw, simulating human feelings and meta-cognitive self-awareness**
+
+---
+
+## 🚀 Quick Installation
+
+### Automatic Setup (Recommended)
+
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url> AURA_Skill
+   cd AURA_Skill
+   ```
+2. **Run the installer**
+   ```bash
+   chmod +x install_emotion_system.sh
+   ./install_emotion_system.sh
+   ```
+   This script will:
+   - Install all Python dependencies
+   - Set up the directory structure
+  - Copy avatars (ora in `skills/emotion-engine/assets/`) e config files
+   - Initialize the database
+   - Prepare OpenClaw integration
+
+3. **Verify installation**
+   ```bash
+   python3 skills/emotion-engine/emotion_tool.py emotions
+   ```
+
+### Manual Setup (Advanced)
+
+- See the [Installation](#installation) section below for step-by-step manual instructions.
+- Install Python dependencies:
+  ```bash
+  pip install -r skills/emotion-engine/requirements.txt
+  ```
+- For multilingual support:
+  ```bash
+  pip install deep-translator langdetect
+  ```
+- Configure OpenClaw and copy avatars as described in the docs.
 
 ---
 
@@ -94,9 +137,67 @@ Based on the Big Five + AI-specific traits:
 - **Curiosity Drive**: Desire to explore and learn (AI-specific)
 - **Perfectionism**: Attention to detail and high standards (AI-specific)
 
+### 🎭 Dynamic Avatar Management
+
+The system includes an **intelligent avatar management system** that automatically updates the agent's visual representation based on the current emotional state.
+
+**Nota:** Per l'installazione automatica, le immagini avatar devono trovarsi in `skills/emotion-engine/assets/`.
+
+- **15 Emotional Avatars**: Each emotion has a dedicated avatar image (AURA_joy.png, AURA_sad.png, etc.)
+- **Automatic Updates**: Avatar changes automatically when the dominant emotion shifts
+- **Real-time Synchronization**: Avatar reflects current emotional state in real-time
+- **OpenClaw Integration**: Seamlessly integrates with OpenClaw's agent identity system
+- **Manual Control**: Force avatar to specific emotions via commands
+
+#### Available Avatar Emotions
+
+**Primary Emotions:**
+- 😊 Joy - AURA_joy.png
+- 😢 Sad - AURA_sad.png  
+- 😠 Angry - AURA_angry.png
+- 😨 Fear - AURA_fear.png
+- 😮 Surprise - AURA_surprise.png
+- 🤢 Disgust - AURA_disgust.png
+- 🤔 Curiosity - AURA_curiosity.png
+- 🤝 Trust - AURA_trust.png
+
+**Complex Emotions:**
+- 🎉 Excitement - AURA_excitement.png
+- 😤 Frustration - AURA_frustration.png
+- 😌 Satisfaction - AURA_satisfaction.png
+- 😕 Confusion - AURA_confusion.png
+- ⏳ Anticipation - AURA_anticipation.png
+- 🤗 Empathy - AURA_empathy.png
+- 🌊 Flow State - AURA_flow_state.png
+
+#### Avatar Commands
+
+```bash
+# View current avatar status
+/emotions avatar
+
+# List all available avatars
+/emotions avatar list
+
+# Force avatar to specific emotion
+/emotions avatar set joy
+
+# Update avatar based on current emotions
+/emotions avatar update
+```
+
 ---
 
-## � Changelog
+## 📜 Changelog
+
+### Version 1.3.0 - Dynamic Avatar Management (2026-02-17)
+- **🎭 Dynamic Avatar System**: Automatic avatar updates based on emotional state
+- **15 Emotional Avatars**: Dedicated avatar for each emotional state
+- **Real-time Synchronization**: Avatar reflects current dominant emotion
+- **OpenClaw Integration**: Seamless integration with agent identity system
+- **Avatar Commands**: New `/emotions avatar` commands for manual control
+- **Automatic Updates**: Avatar changes on significant emotional shifts
+- **Manual Override**: Force avatar to specific emotions when needed
 
 ### Version 1.2.0 - Advanced Emotions + Multilingual Support (2026-02-13)
 - **🌍 Multilingual Support**: Automatic language detection and translation for 100+ languages
@@ -173,7 +274,9 @@ Based on the Big Five + AI-specific traits:
 │   ├── SKILL.md                       # Skill documentation
 │   ├── emotion_tool.py                # Main command tool
 │   ├── tools/                         # Advanced tools
-│   │   └── emotion_ml_engine.py       # Full ML engine
+│   │   ├── emotion_ml_engine.py       # Full ML engine
+│   │   └── avatar_manager.py          # Avatar management
+│   ├── assets/                        # Avatar images (PNG)
 │   ├── models/                        # ML models
 │   │   └── neural_network.py          # Custom neural network
 │   ├── utils/                         # Utilities
@@ -602,6 +705,10 @@ Version 1.2.0 Features:
 | `/emotions memory [days]` | Long-term memory analysis | `/emotions memory 30` |
 | `/emotions correlations` | Performance correlations | `/emotions correlations` |
 | `/emotions dashboard` | Web dashboard data | `/emotions dashboard` |
+| `/emotions avatar` | View current avatar status | `/emotions avatar` |
+| `/emotions avatar list` | List all available avatars | `/emotions avatar list` |
+| `/emotions avatar set <emotion>` | Force avatar to emotion | `/emotions avatar set joy` |
+| `/emotions avatar update` | Update avatar from emotions | `/emotions avatar update` |
 
 ### Management Commands
 

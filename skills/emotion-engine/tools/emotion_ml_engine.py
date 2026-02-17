@@ -21,6 +21,7 @@ sys.path.append(os.path.dirname(__file__))
 from config.emotional_constants import *
 from utils.sentiment_analyzer import AdvancedSentimentAnalyzer
 from models.neural_network import SimpleNeuralNetwork, EmotionalPatternRecognizer, EmotionalFeatureExtractor
+from avatar_manager import AvatarManager
 
 
 class EmotionEngine:
@@ -55,6 +56,15 @@ class EmotionEngine:
 
         # Load persistent state
         self._load_persistent_state()
+        
+        # Avatar manager - gestisce il cambio dinamico dell'avatar
+        try:
+            self.avatar_manager = AvatarManager()
+            self.avatar_enabled = True
+        except Exception as e:
+            print(f"Warning: Avatar manager initialization failed: {e}")
+            self.avatar_manager = None
+            self.avatar_enabled = False
 
     def _load_config(self) -> Dict:
         """Load configuration from file or use defaults."""
@@ -301,6 +311,13 @@ class EmotionEngine:
             # Update ML learning
             if len(self.interaction_history) % self.config["ml_update_frequency"] == 0:
                 self.pattern_recognizer.update_learning()
+            
+            # Update avatar based on emotional state (if enabled)
+            if self.avatar_enabled and self.avatar_manager:
+                try:
+                    self._update_avatar()
+                except Exception as e:
+                    print(f"Warning: Avatar update failed: {e}")
 
             return self.get_emotional_state()
 
@@ -753,6 +770,87 @@ class EmotionEngine:
                                      if self.neural_network.training_history else "N/A"
             }
         }
+
+    def _update_avatar(self):
+        """
+        Update avatar based on current emotional state.
+        Called automatically when emotional state changes significantly.
+        """
+        if not self.avatar_enabled or not self.avatar_manager:
+            return
+        
+        try:
+            # Update avatar usando lo stato emotivo corrente
+            success, emotion, avatar_file = self.avatar_manager.update_avatar_from_emotion(
+                self.emotional_state
+            )
+            
+            if success:
+                print(f"🎭 Avatar updated to {emotion}: {avatar_file}")
+            
+        except Exception as e:
+            print(f"Warning: Avatar update failed: {e}")
+    
+    def get_avatar_info(self) -> Dict:
+        """
+        Get information about the current avatar.
+        
+        Returns:
+            Dictionary with avatar information
+        """
+        if not self.avatar_enabled or not self.avatar_manager:
+            return {
+                "avatar_enabled": False,
+                "message": "Avatar manager not initialized"
+            }
+        
+        try:
+            info = self.avatar_manager.get_current_avatar_info()
+            info["avatar_enabled"] = True
+            
+            # Aggiungi l'emozione dominante corrente
+            state = self.get_emotional_state()
+            info["current_dominant_emotion"] = state["dominant_emotions"]
+            
+            return info
+        except Exception as e:
+            return {
+                "avatar_enabled": False,
+                "error": str(e)
+            }
+    
+    def list_available_avatars(self) -> Dict:
+        """
+        List all available avatars.
+        
+        Returns:
+            Dictionary of available avatars
+        """
+        if not self.avatar_enabled or not self.avatar_manager:
+            return {"error": "Avatar manager not initialized"}
+        
+        try:
+            return self.avatar_manager.list_available_avatars()
+        except Exception as e:
+            return {"error": str(e)}
+    
+    def force_avatar_update(self, emotion: str) -> Tuple[bool, str]:
+        """
+        Force avatar update to a specific emotion.
+        
+        Args:
+            emotion: Emotion name
+            
+        Returns:
+            Tuple (success, message)
+        """
+        if not self.avatar_enabled or not self.avatar_manager:
+            return False, "Avatar manager not initialized"
+        
+        try:
+            return self.avatar_manager.force_update_avatar(emotion)
+        except Exception as e:
+            return False, f"Error: {str(e)}"
 
     def adapt_personality_traits(self, feedback: Dict) -> Dict:
         """Adapt personality traits based on feedback."""
