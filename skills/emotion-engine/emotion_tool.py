@@ -1578,6 +1578,7 @@ def main():
         'detailed', 'history', 'triggers', 'personality', 'metacognition',
         'predict', 'introspect', 'reset', 'export', 'config', 'version',
         'blend', 'memory', 'correlations', 'dashboard', 'simulate',
+        'avatar',
     }
 
     if parsed_args.command in ('emotions', 'emotion_engine', 'emotion-engine', '/emotions'):
