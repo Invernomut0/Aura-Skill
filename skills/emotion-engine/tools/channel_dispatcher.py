@@ -33,7 +33,7 @@ class ChannelDispatcher:
             "telegram": {
                 "enabled": True,
                 "provider": "telegram",
-                "command": "openclaw message send --provider telegram --text",
+                "command": "openclaw message send --channel telegram --text",
                 "emoji_support": True,
                 "max_length": 4096,
                 "target": self.config.get("telegram_target", "")  # chat_id
@@ -41,7 +41,7 @@ class ChannelDispatcher:
             "whatsapp": {
                 "enabled": True,
                 "provider": "whatsapp", 
-                "command": "openclaw message send --provider whatsapp --text",
+                "command": "openclaw message send --channel whatsapp --text",
                 "emoji_support": True,
                 "max_length": 1600,
                 "target": self.config.get("whatsapp_target", "")  # phone number
@@ -103,6 +103,29 @@ class ChannelDispatcher:
                 "channel": channel
             }
     
+    def _check_openclaw_config(self, provider: str) -> tuple[bool, str]:
+        """Verifica che OpenClaw sia configurato per un provider."""
+        try:
+            # Prova a listare i provider configurati
+            result = subprocess.run(
+                'openclaw providers list --json 2>/dev/null || echo "[]"',
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode != 0:
+                return False, "OpenClaw CLI non disponibile o non configurato"
+            
+            # Verifica se il provider è nella lista
+            if provider.lower() not in result.stdout.lower():
+                return False, f"Provider {provider} non configurato in OpenClaw"
+            
+            return True, "OK"
+        except Exception as e:
+            return False, f"Errore verifica configurazione: {e}"
+    
     def _send_telegram(self, message: str, **kwargs) -> Dict[str, Any]:
         """Invia messaggio su Telegram via openclaw CLI."""
         try:
@@ -115,12 +138,21 @@ class ChannelDispatcher:
                     "error": "Target (chat_id) non configurato. Usa: /emotions proactive target <chat_id>"
                 }
             
+            # Verifica configurazione OpenClaw
+            config_ok, config_error = self._check_openclaw_config("telegram")
+            if not config_ok:
+                return {
+                    "success": False,
+                    "channel": "telegram",
+                    "error": f"Configurazione OpenClaw mancante: {config_error}. Configura prima il provider Telegram in OpenClaw."
+                }
+            
             # Prova a usare openclaw CLI
             # Formatta il messaggio per la shell
             escaped_message = message.replace('"', '\\"')
             
             # Comando per inviare messaggio con target
-            cmd = f'openclaw message send --provider telegram --target "{target}" --text "{escaped_message}"'
+            cmd = f'openclaw message send --channel telegram --target "{target}" --text "{escaped_message}"'
             
             logger.info(f"Invio messaggio Telegram: {message[:50]}...")
             
@@ -151,11 +183,21 @@ class ChannelDispatcher:
             else:
                 error_msg = result.stderr or result.stdout or "Errore sconosciuto"
                 logger.error(f"Errore invio Telegram (exit code {result.returncode}): {error_msg}")
+                # Fallback: stampa il messaggio che sarebbe stato inviato
+                print(f"\n{'='*60}")
+                print("📨 MESSAGGIO PROATTIVO (fallback - non inviato)")
+                print(f"{'='*60}")
+                print(f"Canale: Telegram")
+                print(f"Target: {target}")
+                print(f"{'='*60}")
+                print(message)
+                print(f"{'='*60}\n")
                 return {
                     "success": False,
                     "channel": "telegram",
                     "error": error_msg,
-                    "exit_code": result.returncode
+                    "exit_code": result.returncode,
+                    "fallback_shown": True
                 }
         
         except subprocess.TimeoutExpired:
@@ -189,7 +231,7 @@ class ChannelDispatcher:
             escaped_message = message.replace('"', '\\"')
             
             # Comando per inviare messaggio con target
-            cmd = f'openclaw message send --provider whatsapp --target "{target}" --text "{escaped_message}"'
+            cmd = f'openclaw message send --channel whatsapp --target "{target}" --text "{escaped_message}"'
             
             logger.info(f"Invio messaggio WhatsApp: {message[:50]}...")
             
