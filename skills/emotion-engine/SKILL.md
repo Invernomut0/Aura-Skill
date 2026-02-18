@@ -3,9 +3,6 @@ name: emotions
 description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
 version: 1.2.0
 user-invocable: true
-command-dispatch: tool
-command-tool: exec
-command-arg-mode: raw
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 tools:
   - name: emotion_tool
@@ -15,9 +12,12 @@ tools:
 
 # Advanced Emotional Intelligence System for OpenClaw
 
-When the user invokes /emotions or asks about feelings, use the exec tool with this exact command:
+When the user invokes /emotions or asks about feelings, read the emotional state using read_file tool from ~/.openclaw/current_emotional_state.json or execute the emotion_tool.py script directly using the bash tool.
 
-```
+## Direct Script Execution
+
+Use the bash tool to execute:
+```bash
 python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions
 ```
 
