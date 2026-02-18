@@ -1,13 +1,19 @@
-import { HookHandler } from "@openclaw/types";
+/**
+ * Hook che modifica dinamicamente il prompt dell'agente basandosi sullo stato emotivo
+ */
+
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import { EmotionBehaviorDriver } from "./prompt_generator";
 import { EmotionalState, EmotionConfig } from "./types";
 
-/**
- * Hook che modifica dinamicamente il prompt dell'agente basandosi sullo stato emotivo
- */
+type HookHandler = (event: {
+  type: string;
+  action: string;
+  modifySystemPrompt: (prompt: string) => void;
+}) => Promise<void>;
+
 const handler: HookHandler = async (event) => {
   // Verifica che sia l'evento corretto
   if (event.type !== "agent" || event.action !== "bootstrap") {

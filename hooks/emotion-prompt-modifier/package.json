@@ -1,15 +1,14 @@
 {
   "name": "emotion-prompt-modifier",
   "version": "1.0.0",
+  "type": "module",
   "description": "OpenClaw hook that modifies agent prompts based on emotional state",
   "main": "handler.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
   },
-  "dependencies": {
-    "@openclaw/types": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0"
