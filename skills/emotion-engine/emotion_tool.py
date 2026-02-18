@@ -702,6 +702,73 @@ def handle_emotions_command(args: List[str]) -> str:
 
             return '\n'.join(output)
 
+        elif args[0] == 'debug':
+            # Toggle debug mode for compact emotion display
+            if len(args) < 2:
+                # Show current debug status with emotion info
+                config_path = os.path.expanduser('~/.openclaw/emotion_config.json')
+                try:
+                    with open(config_path, 'r') as f:
+                        config = json.load(f)
+                except:
+                    config = {}
+                
+                enabled = config.get('debug_mode', False)
+                output = [f"📊 Debug Mode: {'ON ✅' if enabled else 'OFF'}"]
+                
+                if enabled and EMOTION_ENGINE_AVAILABLE:
+                    engine = get_emotion_engine()
+                    if engine:
+                        state = engine.get_emotional_state()
+                        output.append("\n🎭 Stato Emotivo Corrente:")
+                        primary = state.get('dominant_emotions', {}).get('primary', {})
+                        complex_em = state.get('dominant_emotions', {}).get('complex', {})
+                        output.append(f"  Primary: {primary.get('emotion', 'N/A')} ({primary.get('intensity', 0):.0%})")
+                        output.append(f"  Complex: {complex_em.get('emotion', 'N/A')} ({complex_em.get('intensity', 0):.0%})")
+                        
+                        # Show mental mood
+                        mental_mood = state.get('mental_mood', {})
+                        energy = mental_mood.get('energy', {}).get('level', 0)
+                        confidence = mental_mood.get('confidence', {}).get('level', 0)
+                        humor = mental_mood.get('humor', {}).get('state', 'neutral')
+                        output.append(f"\n🧠 Mood: energy={energy:.0%}, confidence={confidence:.0%}, humor={humor}")
+                        
+                        # Show system prompt that would be used
+                        from tools.emotion_ml_engine import EmotionEngine
+                        modifiers = engine.get_personality_influenced_prompt_modifiers()
+                        system_prompt = get_emotion_influenced_system_prompt(state, modifiers)
+                        if system_prompt:
+                            output.append(f"\n📝 System Prompt:\n{system_prompt[:200]}...")
+                
+                return '\n'.join(output)
+            
+            debug_mode = args[1].lower()
+            
+            # Get or create config
+            config_path = os.path.expanduser('~/.openclaw/emotion_config.json')
+            try:
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+            except:
+                config = {}
+            
+            if debug_mode == 'on':
+                config['debug_mode'] = True
+                message = "✅ Debug mode ON - Emoji emotivi sempre visibili"
+            elif debug_mode == 'off':
+                config['debug_mode'] = False
+                message = "✅ Debug mode OFF - Emoji nascosti"
+            elif debug_mode == 'status':
+                enabled = config.get('debug_mode', False)
+                return f"📊 Debug Mode: {'ON ✅' if enabled else 'OFF'}"
+            else:
+                return "❌ Usage: /emotions debug on|off|status"
+            
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            return f"{message}\n\nQuando attivo, gli emoji emotivi verranno mostrati in ogni risposta in modo compatto.\nUsa /emotions debug senza argomenti per vedere lo stato attuale."
+        
         elif args[0] == 'simulate':
             # Simulate a specific emotional state for testing
             if len(args) < 2:
@@ -2501,7 +2568,7 @@ def main():
         'detailed', 'history', 'triggers', 'personality', 'metacognition',
         'predict', 'introspect', 'reset', 'export', 'config', 'version',
         'blend', 'memory', 'correlations', 'dashboard', 'simulate',
-        'avatar',
+        'avatar', 'debug',
     }
 
     if parsed_args.command in ('emotions', 'emotion_engine', 'emotion-engine', '/emotions'):
