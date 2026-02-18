@@ -3,6 +3,9 @@ name: emotions
 description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
 version: 1.2.0
 user-invocable: true
+command-dispatch: tool
+command-tool: /usr/bin/python3
+command-args: ["~/.openclaw/skills/emotion-engine/emotion_tool.py"]
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 tools:
   - name: emotion_tool
