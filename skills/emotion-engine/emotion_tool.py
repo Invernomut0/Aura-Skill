@@ -883,6 +883,12 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             logger.info("Generating dashboard HTML...")
             dashboard_data = generate_dashboard_data()
             logger.info(f"Dashboard data generated: {len(dashboard_data)} keys")
+            
+            # Get interaction history from engine for real-time charts
+            engine = get_emotion_engine()
+            interaction_history = []
+            if engine and hasattr(engine, 'interaction_history'):
+                interaction_history = engine.interaction_history
 
             # Prepare data for charts
             primary_emotions = dashboard_data['current_emotions']
@@ -894,9 +900,38 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             primary_values = [primary_emotions.get(emotion, 0) for emotion in emotion_labels]
             complex_values = [complex_emotions.get(emotion, 0) for emotion in emotion_labels]
 
-            # Timeline data (simplified - you can expand this)
-            timeline_labels = ['08:00', '09:00', '10:00', '11:00', '12:00']
-            timeline_data = dashboard_data.get('timeline_data', [[3, 5, 6, 8, 10], [4, 3, 2, 3, 4]])
+            # Timeline data - REAL data from interaction history
+            if interaction_history and len(interaction_history) >= 2:
+                recent = interaction_history[-20:] if len(interaction_history) > 20 else interaction_history
+                timeline_labels = []
+                joy_timeline = []
+                sadness_timeline = []
+                
+                for entry in recent:
+                    ts = entry.get('timestamp', '')
+                    if ts:
+                        try:
+                            from datetime import datetime
+                            dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+                            timeline_labels.append(dt.strftime('%H:%M'))
+                        except:
+                            timeline_labels.append('??:??')
+                    else:
+                        timeline_labels.append('??:??')
+                    
+                    snapshot = entry.get('emotional_state_snapshot', {})
+                    primary = snapshot.get('primary_emotions', {})
+                    joy_timeline.append(round(primary.get('joy', 0) * 100, 1))
+                    sadness_timeline.append(round(primary.get('sadness', 0) * 100, 1))
+                
+                timeline_data = [joy_timeline, sadness_timeline]
+            else:
+                # Fallback to current state only
+                from datetime import datetime
+                timeline_labels = [datetime.now().strftime('%H:%M')]
+                joy_val = round(primary_emotions.get('joy', 0.5) * 100, 1)
+                sadness_val = round(primary_emotions.get('sadness', 0.1) * 100, 1)
+                timeline_data = [[joy_val], [sadness_val]]
 
             # Prepare additional data for charts
             performance_metrics = dashboard_data.get('performance_metrics', {})
@@ -914,19 +949,11 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             pie_labels = list(all_emotions.keys())
             pie_values = list(all_emotions.values())
 
-            # Scatter plot data - mock correlations
-            scatter_data = {
-                'joy': [0.0, 0.0, 0.0, 0.0, 0.0],
-                'curiosity': [0.0, 0.0, 0.0, 0.0, 0.0]
-            }
+            # Scatter plot data - real correlations from history
+            scatter_data = generate_scatter_data(interaction_history)
 
-            # Area chart data
-            area_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            area_data = [
-                [0, 0, 0, 0, 0, 0, 0],  # Joy
-                [0, 0, 0, 0, 0, 0, 0],  # Sadness
-                [0, 0, 0, 0, 0, 0, 0]   # Curiosity
-            ]
+            # Area chart data - real weekly trends
+            area_labels, area_data = generate_area_chart_data(interaction_history)
 
             html_template = """<!DOCTYPE html>
             <html lang="en">
@@ -1757,6 +1784,107 @@ def calculate_emotional_balance(current_emotions: Dict) -> float:
     return round(min(1.0, max(0.0, balance)), 2)
 
 
+def generate_scatter_data(interaction_history: list) -> Dict[str, list]:
+    """
+    Generate REAL scatter plot data from interaction history.
+    
+    Returns joy vs curiosity correlation data points.
+    """
+    if not interaction_history or len(interaction_history) < 3:
+        # Return current state as single point if no history
+        return {
+            'joy': [0.5],
+            'curiosity': [0.5]
+        }
+    
+    # Use recent interactions for scatter plot
+    recent = interaction_history[-20:] if len(interaction_history) > 20 else interaction_history
+    
+    joy_values = []
+    curiosity_values = []
+    
+    for entry in recent:
+        emotional_snapshot = entry.get('emotional_state_snapshot', {})
+        primary = emotional_snapshot.get('primary_emotions', {})
+        
+        joy = primary.get('joy', 0)
+        curiosity = primary.get('curiosity', 0)
+        
+        # Only add points where we have meaningful data
+        if joy > 0 or curiosity > 0:
+            joy_values.append(round(joy, 2))
+            curiosity_values.append(round(curiosity, 2))
+    
+    # Ensure we have at least some data points
+    if not joy_values:
+        joy_values = [0.5]
+        curiosity_values = [0.5]
+    
+    return {
+        'joy': joy_values,
+        'curiosity': curiosity_values
+    }
+
+
+def generate_area_chart_data(interaction_history: list) -> tuple:
+    """
+    Generate REAL area chart data from interaction history.
+    
+    Returns labels and data for joy, sadness, curiosity over time.
+    """
+    if not interaction_history or len(interaction_history) < 2:
+        # Return empty structure with current time
+        from datetime import datetime
+        now = datetime.now()
+        labels = [now.strftime('%H:%M')]
+        data = [
+            [0.5],  # Joy
+            [0.1],  # Sadness
+            [0.3]   # Curiosity
+        ]
+        return labels, data
+    
+    # Use last 7 interactions or fewer
+    recent = interaction_history[-7:] if len(interaction_history) > 7 else interaction_history
+    
+    labels = []
+    joy_data = []
+    sadness_data = []
+    curiosity_data = []
+    
+    for entry in recent:
+        # Extract timestamp
+        timestamp = entry.get('timestamp', '')
+        if timestamp:
+            try:
+                from datetime import datetime
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                labels.append(dt.strftime('%H:%M'))
+            except:
+                labels.append('??:??')
+        else:
+            labels.append('??:??')
+        
+        # Extract emotions
+        emotional_snapshot = entry.get('emotional_state_snapshot', {})
+        primary = emotional_snapshot.get('primary_emotions', {})
+        
+        joy_data.append(round(primary.get('joy', 0) * 100, 1))  # Scale to percentage
+        sadness_data.append(round(primary.get('sadness', 0) * 100, 1))
+        curiosity_data.append(round(primary.get('curiosity', 0) * 100, 1))
+    
+    # If we have fewer than 7 points, pad with current state
+    while len(labels) < 7:
+        labels.append('Now')
+        joy_data.append(joy_data[-1] if joy_data else 50)
+        sadness_data.append(sadness_data[-1] if sadness_data else 10)
+        curiosity_data.append(curiosity_data[-1] if curiosity_data else 30)
+    
+    data = [joy_data, sadness_data, curiosity_data]
+    
+    return labels, data
+
+
 def generate_dashboard_data() -> Dict[str, Any]:
     """
     Generate data for the web dashboard.
@@ -1776,16 +1904,31 @@ def generate_dashboard_data() -> Dict[str, Any]:
             interaction_history = getattr(engine, 'interaction_history', [])
             
             # Generate timeline data from recent history
+            timeline_labels = []
             timeline_data = [[], []]  # Joy and Sadness over time
             if interaction_history:
                 recent_history = interaction_history[-20:] if len(interaction_history) > 20 else interaction_history
                 for entry in recent_history:
+                    # Extract timestamp for label
+                    ts = entry.get('timestamp', '')
+                    if ts:
+                        try:
+                            from datetime import datetime
+                            dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+                            timeline_labels.append(dt.strftime('%H:%M'))
+                        except:
+                            timeline_labels.append('??:??')
+                    else:
+                        timeline_labels.append('??:??')
+                    
                     emotional_snapshot = entry.get('emotional_state_snapshot', {})
                     primary_emotions = emotional_snapshot.get('primary_emotions', {})
                     timeline_data[0].append(primary_emotions.get('joy', 0))
                     timeline_data[1].append(primary_emotions.get('sadness', 0))
             else:
                 # No real history, use current state as single point
+                from datetime import datetime
+                timeline_labels = [datetime.now().strftime('%H:%M')]
                 timeline_data = [
                     [current_emotions.get('joy', 0)], 
                     [current_emotions.get('sadness', 0)]
@@ -1807,6 +1950,7 @@ def generate_dashboard_data() -> Dict[str, Any]:
                 "current_emotions": current_emotions,
                 "complex_emotions": complex_emotions,
                 "timeline_data": timeline_data,
+                "timeline_labels": timeline_labels,
                 "emotional_balance": emotional_balance,
                 "recent_history": [
                     {
