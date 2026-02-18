@@ -35,14 +35,16 @@ class ChannelDispatcher:
                 "provider": "telegram",
                 "command": "openclaw message send --provider telegram --text",
                 "emoji_support": True,
-                "max_length": 4096
+                "max_length": 4096,
+                "target": self.config.get("telegram_target", "")  # chat_id
             },
             "whatsapp": {
                 "enabled": True,
                 "provider": "whatsapp", 
                 "command": "openclaw message send --provider whatsapp --text",
                 "emoji_support": True,
-                "max_length": 1600
+                "max_length": 1600,
+                "target": self.config.get("whatsapp_target", "")  # phone number
             }
         }
     
@@ -104,12 +106,21 @@ class ChannelDispatcher:
     def _send_telegram(self, message: str, **kwargs) -> Dict[str, Any]:
         """Invia messaggio su Telegram via openclaw CLI."""
         try:
+            # Ottieni target (chat_id)
+            target = kwargs.get('target') or self.channels["telegram"].get("target", "")
+            if not target:
+                return {
+                    "success": False,
+                    "channel": "telegram",
+                    "error": "Target (chat_id) non configurato. Usa: /emotions proactive target <chat_id>"
+                }
+            
             # Prova a usare openclaw CLI
             # Formatta il messaggio per la shell
             escaped_message = message.replace('"', '\\"')
             
-            # Comando per inviare messaggio
-            cmd = f'openclaw message send --provider telegram --text "{escaped_message}"'
+            # Comando per inviare messaggio con target
+            cmd = f'openclaw message send --provider telegram --target "{target}" --text "{escaped_message}"'
             
             logger.info(f"Invio messaggio Telegram: {message[:50]}...")
             
@@ -156,11 +167,20 @@ class ChannelDispatcher:
     def _send_whatsapp(self, message: str, **kwargs) -> Dict[str, Any]:
         """Invia messaggio su WhatsApp via openclaw CLI."""
         try:
+            # Ottieni target (phone number)
+            target = kwargs.get('target') or self.channels["whatsapp"].get("target", "")
+            if not target:
+                return {
+                    "success": False,
+                    "channel": "whatsapp",
+                    "error": "Target (phone number) non configurato. Usa: /emotions proactive target <phone>"
+                }
+            
             # Formatta il messaggio per la shell
             escaped_message = message.replace('"', '\\"')
             
-            # Comando per inviare messaggio
-            cmd = f'openclaw message send --provider whatsapp --text "{escaped_message}"'
+            # Comando per inviare messaggio con target
+            cmd = f'openclaw message send --provider whatsapp --target "{target}" --text "{escaped_message}"'
             
             logger.info(f"Invio messaggio WhatsApp: {message[:50]}...")
             
