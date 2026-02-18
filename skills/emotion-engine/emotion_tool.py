@@ -805,8 +805,20 @@ def handle_emotions_command(args: List[str]) -> str:
                 except Exception as e:
                     return f"❌ Error during test: {str(e)}"
             
+            elif args[1] == 'target' and len(args) >= 4:
+                # Configure target (chat_id/phone) for a channel
+                channel = args[2].lower()
+                target = args[3]
+                if channel in ["telegram", "whatsapp"]:
+                    if pm.set_target(channel, target):
+                        return f"✅ Target configured for {channel}: {target}\n\nProactive messages will be sent to this {channel} target."
+                    else:
+                        return f"❌ Failed to configure target for {channel}"
+                else:
+                    return f"❌ Invalid channel: {channel}\nUse: telegram or whatsapp"
+            
             else:
-                return "❌ Unknown proactive command.\n\nAvailable commands:\n  /emotions proactive status\n  /emotions proactive on|off\n  /emotions proactive channel <telegram|whatsapp>\n  /emotions proactive quiet <HH:MM-HH:MM>\n  /emotions proactive threshold <emotion> <value>\n  /emotions proactive test"
+                return "❌ Unknown proactive command.\n\nAvailable commands:\n  /emotions proactive status\n  /emotions proactive on|off\n  /emotions proactive channel <telegram|whatsapp>\n  /emotions proactive target <telegram|whatsapp> <chat_id/phone>\n  /emotions proactive quiet <HH:MM-HH:MM>\n  /emotions proactive threshold <emotion> <value>\n  /emotions proactive test"
 
         else:
             return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard\n  • /emotions avatar [list|set|update]\n  • /emotions proactive [on|off|status|channel|quiet|threshold|test]"

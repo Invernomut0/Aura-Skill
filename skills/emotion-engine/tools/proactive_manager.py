@@ -386,3 +386,32 @@ class ProactiveTriggerManager:
             return True
         
         return False
+    
+    def set_target(self, channel: str, target: str) -> bool:
+        """
+        Configura il target (chat_id/phone) per un canale.
+        
+        Args:
+            channel: 'telegram' o 'whatsapp'
+            target: chat_id per Telegram, phone number per WhatsApp
+            
+        Returns:
+            bool: True se configurato con successo
+        """
+        if channel not in ["telegram", "whatsapp"]:
+            logger.error(f"Canale non valido: {channel}")
+            return False
+        
+        # Aggiorna config
+        key = f"{channel}_target"
+        self.config[key] = target
+        
+        # Aggiorna anche default_settings per persistenza
+        if channel == "telegram":
+            self.__class__.default_settings["telegram_target"] = target
+        else:
+            self.__class__.default_settings["whatsapp_target"] = target
+        
+        self._save_config()
+        logger.info(f"Target per {channel} configurato: {target}")
+        return True
