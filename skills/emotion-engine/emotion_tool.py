@@ -1092,9 +1092,15 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             <p>Last updated: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
             </div>
                         <script>
+            // Store chart instances for auto-refresh
+            let radarChart, lineChart, metaCognitiveChart, pieChart, scatterChart, qualityGauge, completionGauge, satisfactionGauge, balanceGauge, areaChart, radarAdvancedChart;
+            
+            // Auto-refresh configuration
+            const REFRESH_INTERVAL = 3000; // Refresh every 3 seconds
+            
             // Radar Chart for Primary and Complex Emotions
             const radarCtx = document.getElementById('radarChart').getContext('2d');
-            new Chart(radarCtx, {
+            radarChart = new Chart(radarCtx, {
             type: 'radar',
             data: {
             labels: """ + str(emotion_labels).replace("'", '"') + """,
@@ -1118,8 +1124,8 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             }
             });
                         // Line Chart for Timeline Evolution
-            const lineCtx = document.getElementById('lineChart').getContext('2d');
-            new Chart(lineCtx, {
+            const lineCtx = document.getElementById("lineChart").getContext("2d");
+            lineChart = new Chart(lineCtx, {
             type: 'line',
             data: {
             labels: """ + str(timeline_labels).replace("'", '"') + """,
@@ -1160,7 +1166,7 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             });
                         // Bar Chart for Meta-Cognitive States
             const metaCtx = document.getElementById('metaCognitiveChart').getContext('2d');
-            new Chart(metaCtx, {
+            metaCognitiveChart = new Chart(metaCtx, {
             type: 'bar',
             data: {
             labels: """ + str(meta_labels).replace("'", '"') + """,
@@ -1195,7 +1201,7 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             });
                         // Pie Chart for Emotion Distribution
             const pieCtx = document.getElementById('pieChart').getContext('2d');
-            new Chart(pieCtx, {
+            pieChart = new Chart(pieCtx, {
             type: 'pie',
             data: {
             labels: """ + str(pie_labels).replace("'", '"') + """,
@@ -1225,7 +1231,7 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             });
                         // Scatter Chart for Emotion Correlations
             const scatterCtx = document.getElementById('scatterChart').getContext('2d');
-            new Chart(scatterCtx, {
+            scatterChart = new Chart(scatterCtx, {
             type: 'scatter',
             data: {
             datasets: [{
@@ -1256,7 +1262,7 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                         // Gauge Charts for Performance Metrics
             function createGauge(canvasId, value, label, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
+            const chart = new Chart(ctx, {
             type: 'doughnut',
             data: {
             datasets: [{
@@ -1292,14 +1298,15 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             }
             }]
             });
+            return chart;
             }
-                        createGauge('qualityGauge', """ + str(quality_value) + """, 'Quality', 'rgba(75, 192, 192, 1)');
-            createGauge('completionGauge', """ + str(completion_value) + """, 'Completion', 'rgba(54, 162, 235, 1)');
-            createGauge('satisfactionGauge', """ + str(satisfaction_value) + """, 'Satisfaction', 'rgba(255, 206, 86, 1)');
-            createGauge('balanceGauge', """ + str(balance_value) + """, 'Balance', 'rgba(153, 102, 255, 1)');
+                        qualityGauge = createGauge('qualityGauge', """ + str(quality_value) + """, 'Quality', 'rgba(75, 192, 192, 1)');
+            completionGauge = createGauge('completionGauge', """ + str(completion_value) + """, 'Completion', 'rgba(54, 162, 235, 1)');
+            satisfactionGauge = createGauge('satisfactionGauge', """ + str(satisfaction_value) + """, 'Satisfaction', 'rgba(255, 206, 86, 1)');
+            balanceGauge = createGauge('balanceGauge', """ + str(balance_value) + """, 'Balance', 'rgba(153, 102, 255, 1)');
                         // Area Chart for Advanced Analytics
             const areaCtx = document.getElementById('areaChart').getContext('2d');
-            new Chart(areaCtx, {
+            areaChart = new Chart(areaCtx, {
             type: 'line',
             data: {
             labels: """ + str(area_labels).replace("'", '"') + """,
@@ -1347,7 +1354,7 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             });
                         // Advanced Radar Chart
             const radarAdvancedCtx = document.getElementById('radarAdvanced').getContext('2d');
-            new Chart(radarAdvancedCtx, {
+            radarAdvancedChart = new Chart(radarAdvancedCtx, {
             type: 'radar',
             data: {
             labels: ['Confidence', 'Stability', 'Adaptability', 'Resilience', 'Empathy', 'Creativity'],
@@ -1378,6 +1385,57 @@ class DashboardHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             }
             }
             });
+            
+            // Auto-refresh functionality
+            async function refreshDashboardData() {
+                try {
+                    // Fetch updated data from API
+                    const response = await fetch('/api/emotions/current');
+                    if (!response.ok) throw new Error('Failed to fetch data');
+                    const emotions = await response.json();
+                    
+                    // Update radar chart
+                    if (radarChart && emotions) {
+                        radarChart.data.datasets[0].data = Object.values(emotions);
+                        radarChart.update('none'); // Update without animation
+                    }
+                    
+                    // Update pie chart
+                    if (pieChart && emotions) {
+                        pieChart.data.datasets[0].data = Object.values(emotions);
+                        pieChart.update('none');
+                    }
+                    
+                    // Fetch performance metrics
+                    const perfResponse = await fetch('/api/emotions/history');
+                    if (perfResponse.ok) {
+                        const history = await perfResponse.json();
+                        // Update timeline if we have history data
+                        if (lineChart && history && history.length > 0) {
+                            const joyData = history.map(h => h.joy || 0);
+                            const sadnessData = history.map(h => h.sadness || 0);
+                            lineChart.data.datasets[0].data = joyData;
+                            lineChart.data.datasets[1].data = sadnessData;
+                            lineChart.update('none');
+                        }
+                    }
+                    
+                    // Update timestamp
+                    const timestampEl = document.querySelector('.status p:last-child');
+                    if (timestampEl) {
+                        timestampEl.textContent = 'Last updated: ' + new Date().toLocaleString();
+                    }
+                    
+                    console.log('Dashboard refreshed at', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('Auto-refresh failed:', error);
+                }
+            }
+            
+            // Start auto-refresh
+            setInterval(refreshDashboardData, REFRESH_INTERVAL);
+            console.log('Auto-refresh enabled (every ' + REFRESH_INTERVAL/1000 + ' seconds)');
+            
             </script>
             </body>
 </html>"""
@@ -1466,6 +1524,239 @@ def start_dashboard_server():
     return dashboard_server_thread
 
 
+def calculate_performance_metrics(interaction_history: list) -> Dict[str, float]:
+    """
+    Calculate REAL performance metrics from interaction history.
+    
+    Uses sentiment confidence and pattern analysis to determine:
+    - response_quality: based on sentiment confidence scores
+    - task_completion: based on pattern analysis success indicators
+    - user_satisfaction: based on positive emotion trends
+    """
+    if not interaction_history:
+        return {
+            "response_quality": 0.0,
+            "task_completion": 0.0,
+            "user_satisfaction": 0.0
+        }
+    
+    recent_interactions = interaction_history[-20:] if len(interaction_history) > 20 else interaction_history
+    
+    # Calculate response quality from sentiment confidence
+    confidences = []
+    for entry in recent_interactions:
+        sentiment = entry.get('sentiment', {})
+        confidence = sentiment.get('confidence', 0.5)
+        confidences.append(confidence)
+    
+    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
+    response_quality = min(1.0, avg_confidence * 1.2)  # Scale to 0-1
+    
+    # Calculate task completion from emotional state trends
+    # High positive emotions (joy, satisfaction) indicate successful interactions
+    completion_scores = []
+    for entry in recent_interactions:
+        emotional_snapshot = entry.get('emotional_state_snapshot', {})
+        primary = emotional_snapshot.get('primary_emotions', {})
+        # Score based on positive emotions
+        joy = primary.get('joy', 0)
+        trust = primary.get('trust', 0)
+        # Low negative emotions also indicate success
+        sadness = primary.get('sadness', 0)
+        anger = primary.get('anger', 0)
+        
+        completion_score = (joy + trust + (1 - sadness) + (1 - anger)) / 4
+        completion_scores.append(completion_score)
+    
+    avg_completion = sum(completion_scores) / len(completion_scores) if completion_scores else 0.5
+    task_completion = min(1.0, avg_completion * 1.1)
+    
+    # Calculate user satisfaction from complex emotions
+    satisfaction_scores = []
+    for entry in recent_interactions:
+        emotional_snapshot = entry.get('emotional_state_snapshot', {})
+        complex_emotions = emotional_snapshot.get('complex_emotions', {})
+        satisfaction = complex_emotions.get('satisfaction', 0)
+        excitement = complex_emotions.get('excitement', 0)
+        flow_state = complex_emotions.get('flow_state', 0)
+        frustration = complex_emotions.get('frustration', 0)
+        confusion = complex_emotions.get('confusion', 0)
+        
+        # High satisfaction, excitement, flow_state = high user satisfaction
+        # Low frustration, confusion = high user satisfaction
+        satisfaction_score = (satisfaction + excitement + flow_state + (1 - frustration) + (1 - confusion)) / 5
+        satisfaction_scores.append(satisfaction_score)
+    
+    avg_satisfaction = sum(satisfaction_scores) / len(satisfaction_scores) if satisfaction_scores else 0.5
+    user_satisfaction = min(1.0, avg_satisfaction * 1.15)
+    
+    return {
+        "response_quality": round(response_quality, 2),
+        "task_completion": round(task_completion, 2),
+        "user_satisfaction": round(user_satisfaction, 2)
+    }
+
+
+def calculate_emotion_performance_correlations(interaction_history: list) -> Dict[str, float]:
+    """
+    Calculate REAL correlations between emotions and performance metrics.
+    
+    Uses statistical correlation between emotion intensities and success indicators.
+    """
+    if not interaction_history or len(interaction_history) < 5:
+        return {
+            "joy_response_quality": 0.0,
+            "curiosity_task_completion": 0.0,
+            "trust_user_satisfaction": 0.0,
+            "flow_state_performance": 0.0
+        }
+    
+    recent_interactions = interaction_history[-30:] if len(interaction_history) > 30 else interaction_history
+    
+    # Extract emotion values and performance indicators
+    joy_values = []
+    curiosity_values = []
+    trust_values = []
+    flow_state_values = []
+    satisfaction_values = []
+    
+    for entry in recent_interactions:
+        emotional_snapshot = entry.get('emotional_state_snapshot', {})
+        primary = emotional_snapshot.get('primary_emotions', {})
+        complex_emotions = emotional_snapshot.get('complex_emotions', {})
+        sentiment = entry.get('sentiment', {})
+        
+        joy_values.append(primary.get('joy', 0))
+        curiosity_values.append(primary.get('curiosity', 0))
+        trust_values.append(primary.get('trust', 0))
+        flow_state_values.append(complex_emotions.get('flow_state', 0))
+        satisfaction_values.append(sentiment.get('confidence', 0.5))
+    
+    # Calculate simple correlation (covariance / variance)
+    def calculate_correlation(x: list, y: list) -> float:
+        if len(x) != len(y) or len(x) < 2:
+            return 0.0
+        
+        n = len(x)
+        mean_x = sum(x) / n
+        mean_y = sum(y) / n
+        
+        covariance = sum((x[i] - mean_x) * (y[i] - mean_y) for i in range(n))
+        variance_x = sum((x[i] - mean_x) ** 2 for i in range(n))
+        variance_y = sum((y[i] - mean_y) ** 2 for i in range(n))
+        
+        if variance_x == 0 or variance_y == 0:
+            return 0.0
+        
+        correlation = covariance / (variance_x * variance_y) ** 0.5
+        return max(-1.0, min(1.0, correlation))  # Clamp to [-1, 1]
+    
+    joy_response_quality = calculate_correlation(joy_values, satisfaction_values)
+    curiosity_task_completion = calculate_correlation(curiosity_values, satisfaction_values)
+    trust_user_satisfaction = calculate_correlation(trust_values, satisfaction_values)
+    flow_state_performance = calculate_correlation(flow_state_values, satisfaction_values)
+    
+    return {
+        "joy_response_quality": round(joy_response_quality, 2),
+        "curiosity_task_completion": round(curiosity_task_completion, 2),
+        "trust_user_satisfaction": round(trust_user_satisfaction, 2),
+        "flow_state_performance": round(flow_state_performance, 2)
+    }
+
+
+def calculate_memory_patterns(interaction_history: list, current_emotions: Dict) -> Dict[str, Any]:
+    """
+    Calculate REAL memory patterns from historical data.
+    
+    Analyzes trends, volatility, and dominant emotion evolution.
+    """
+    if not interaction_history or len(interaction_history) < 3:
+        return {
+            "dominant_trend": "insufficient_data",
+            "volatility_index": 0.0,
+            "trend_direction": "stable",
+            "dominant_emotion_stability": 0.0
+        }
+    
+    recent_history = interaction_history[-50:] if len(interaction_history) > 50 else interaction_history
+    
+    # Calculate volatility (standard deviation of emotional changes)
+    emotion_changes = []
+    for i in range(1, len(recent_history)):
+        prev_emotions = recent_history[i-1].get('emotional_state_snapshot', {}).get('primary_emotions', {})
+        curr_emotions = recent_history[i].get('emotional_state_snapshot', {}).get('primary_emotions', {})
+        
+        # Calculate total emotional change
+        change = sum(abs(curr_emotions.get(emotion, 0) - prev_emotions.get(emotion, 0)) 
+                    for emotion in ['joy', 'sadness', 'anger', 'fear', 'trust', 'curiosity'])
+        emotion_changes.append(change)
+    
+    volatility_index = sum(emotion_changes) / len(emotion_changes) if emotion_changes else 0.0
+    volatility_index = min(1.0, volatility_index / 3)  # Normalize
+    
+    # Determine trend direction
+    first_half = recent_history[:len(recent_history)//2]
+    second_half = recent_history[len(recent_history)//2:]
+    
+    first_positivity = sum(
+        entry.get('emotional_state_snapshot', {}).get('primary_emotions', {}).get('joy', 0) +
+        entry.get('emotional_state_snapshot', {}).get('complex_emotions', {}).get('satisfaction', 0)
+        for entry in first_half
+    ) / len(first_half) if first_half else 0
+    
+    second_positivity = sum(
+        entry.get('emotional_state_snapshot', {}).get('primary_emotions', {}).get('joy', 0) +
+        entry.get('emotional_state_snapshot', {}).get('complex_emotions', {}).get('satisfaction', 0)
+        for entry in second_half
+    ) / len(second_half) if second_half else 0
+    
+    if second_positivity > first_positivity + 0.1:
+        trend_direction = "increasing_satisfaction"
+    elif second_positivity < first_positivity - 0.1:
+        trend_direction = "decreasing_satisfaction"
+    else:
+        trend_direction = "stable"
+    
+    # Calculate dominant emotion stability
+    dominant_emotions = []
+    for entry in recent_history:
+        primary = entry.get('emotional_state_snapshot', {}).get('primary_emotions', {})
+        if primary:
+            dominant = max(primary.items(), key=lambda x: x[1])[0]
+            dominant_emotions.append(dominant)
+    
+    if dominant_emotions:
+        most_common = max(set(dominant_emotions), key=dominant_emotions.count)
+        stability = dominant_emotions.count(most_common) / len(dominant_emotions)
+    else:
+        stability = 0.0
+    
+    return {
+        "dominant_trend": trend_direction,
+        "volatility_index": round(volatility_index, 2),
+        "trend_direction": trend_direction,
+        "dominant_emotion_stability": round(stability, 2)
+    }
+
+
+def calculate_emotional_balance(current_emotions: Dict) -> float:
+    """
+    Calculate emotional balance score.
+    
+    Higher when positive emotions dominate over negative ones.
+    """
+    positive = current_emotions.get('joy', 0) + current_emotions.get('trust', 0) + current_emotions.get('curiosity', 0)
+    negative = current_emotions.get('sadness', 0) + current_emotions.get('anger', 0) + current_emotions.get('fear', 0)
+    
+    total = positive + negative
+    if total == 0:
+        return 0.5
+    
+    # Balance: 0.5 is neutral, > 0.5 is positive dominant, < 0.5 is negative dominant
+    balance = positive / total
+    return round(min(1.0, max(0.0, balance)), 2)
+
+
 def generate_dashboard_data() -> Dict[str, Any]:
     """
     Generate data for the web dashboard.
@@ -1481,40 +1772,58 @@ def generate_dashboard_data() -> Dict[str, Any]:
             current_emotions = state.get('primary_emotions', {})
             complex_emotions = state.get('complex_emotions', {})
             
-            # Generate timeline data from recent history (simplified)
+            # Access interaction history for real metrics calculation
+            interaction_history = getattr(engine, 'interaction_history', [])
+            
+            # Generate timeline data from recent history
             timeline_data = [[], []]  # Joy and Sadness over time
-            if 'recent_history' in state and state['recent_history']:
-                for entry in state['recent_history'][-5:]:  # Last 5 entries
-                    timeline_data[0].append(entry.get('joy', 0))
-                    timeline_data[1].append(entry.get('sadness', 0))
+            if interaction_history:
+                recent_history = interaction_history[-20:] if len(interaction_history) > 20 else interaction_history
+                for entry in recent_history:
+                    emotional_snapshot = entry.get('emotional_state_snapshot', {})
+                    primary_emotions = emotional_snapshot.get('primary_emotions', {})
+                    timeline_data[0].append(primary_emotions.get('joy', 0))
+                    timeline_data[1].append(primary_emotions.get('sadness', 0))
             else:
-                # Fallback mock data
-                timeline_data = [[3, 5, 6, 8, 10], [4, 3, 2, 3, 4]]
+                # No real history, use current state as single point
+                timeline_data = [
+                    [current_emotions.get('joy', 0)], 
+                    [current_emotions.get('sadness', 0)]
+                ]
+            
+            # Calculate REAL performance metrics from interaction history
+            performance_metrics = calculate_performance_metrics(interaction_history)
+            
+            # Calculate REAL correlations between emotions and performance
+            correlations = calculate_emotion_performance_correlations(interaction_history)
+            
+            # Calculate REAL memory patterns
+            memory_patterns = calculate_memory_patterns(interaction_history, current_emotions)
+            
+            # Calculate emotional balance from current state
+            emotional_balance = calculate_emotional_balance(current_emotions)
             
             return {
                 "current_emotions": current_emotions,
                 "complex_emotions": complex_emotions,
                 "timeline_data": timeline_data,
-                "emotional_balance": state.get('emotional_balance', 0.75),
-                "recent_history": state.get('recent_history', []),
-                "performance_metrics": state.get('performance_metrics', {
-                    "response_quality": 0.85,
-                    "task_completion": 0.92,
-                    "user_satisfaction": 0.78
-                }),
-                "correlations": state.get('correlations', {
-                    "joy_response_quality": 0.15,
-                    "curiosity_task_completion": 0.18
-                }),
-                "memory_patterns": state.get('memory_patterns', {
-                    "dominant_trend": "increasing_satisfaction",
-                    "volatility_index": 0.3
-                }),
+                "emotional_balance": emotional_balance,
+                "recent_history": [
+                    {
+                        "timestamp": entry.get('timestamp'),
+                        "joy": entry.get('emotional_state_snapshot', {}).get('primary_emotions', {}).get('joy', 0),
+                        "sadness": entry.get('emotional_state_snapshot', {}).get('primary_emotions', {}).get('sadness', 0)
+                    }
+                    for entry in interaction_history[-10:]
+                ] if interaction_history else [],
+                "performance_metrics": performance_metrics,
+                "correlations": correlations,
+                "memory_patterns": memory_patterns,
                 "meta_cognitive_state": state.get('meta_cognitive_state', {
-                    "self_awareness": 0.8,
-                    "emotional_reflection": 0.7,
-                    "learning_adaptation": 0.6,
-                    "pattern_recognition": 0.9
+                    "self_awareness": 0.5,
+                    "emotional_reflection": 0.5,
+                    "learning_adaptation": 0.5,
+                    "pattern_recognition": 0.5
                 })
             }
         except Exception as e:
