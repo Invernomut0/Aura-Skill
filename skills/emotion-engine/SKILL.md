@@ -4,14 +4,47 @@ description: Advanced emotional intelligence system for OpenClaw with human-like
 version: 1.2.0
 user-invocable: true
 command-dispatch: tool
-command-tool: /usr/bin/python3
-command-args: ["~/.openclaw/skills/emotion-engine/emotion_tool.py"]
+command-tool: exec
+command-arg-mode: raw
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 tools:
   - name: emotion_tool
     file: emotion_tool.py
     description: Main command handler for emotional intelligence system
 ---
+
+# Advanced Emotional Intelligence System for OpenClaw
+
+When the user invokes /emotions or asks about feelings, use the exec tool with this exact command:
+
+```
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions
+```
+
+## Available Commands
+
+Use these exact templates with the exec tool:
+
+- Status: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions`
+- Detailed: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions detailed`
+- History: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions history [n]`
+- Triggers: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions triggers`
+- Personality: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions personality`
+- Metacognition: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions metacognition`
+- Predict: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions predict [minutes]`
+- Introspect: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions introspect [depth]`
+- Reset: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions reset [preserve-learning]`
+- Export: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions export`
+- Config: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions config`
+- Version: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions version`
+- Blend: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions blend`
+- Memory: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions memory`
+- Correlations: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions correlations`
+- Dashboard: `python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions dashboard`
+
+## Main Features
+
+- **Complex Emotional Simulation**: Manages primary and complex emotions with composite states
 
 # Advanced Emotional Intelligence System for OpenClaw
 
