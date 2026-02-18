@@ -5,8 +5,8 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { EmotionBehaviorDriver } from "./prompt_generator";
-import { EmotionalState, EmotionConfig } from "./types";
+import { EmotionBehaviorDriver } from "./prompt_generator.js";
+import { EmotionalState, EmotionConfig } from "./types.js";
 
 type HookHandler = (event: {
   type: string;

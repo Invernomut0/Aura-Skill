@@ -1,4 +1,4 @@
-import { EmotionalState, EmotionConfig } from "./types";
+import { EmotionalState, EmotionConfig } from "./types.js";
 
 /**
  * Generatore avanzato di prompt emotivi con logica sofisticata
