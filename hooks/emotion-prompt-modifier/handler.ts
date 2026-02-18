@@ -71,7 +71,11 @@ type HookHandler = (event: {
 }) => Promise<void>;
 
 const handler: HookHandler = async (event) => {
-  if (event.type !== "agent" || event.action !== "bootstrap") {
+  // Run on EVERY message received, not just bootstrap!
+  const isMessageEvent = event.type === "message" && event.action === "received";
+  const isBootstrap = event.type === "agent" && event.action === "bootstrap";
+  
+  if (!isMessageEvent && !isBootstrap) {
     return;
   }
 
