@@ -22,6 +22,23 @@ class ProactiveTriggerManager:
     l'utente su Telegram/WhatsApp con messaggi contestuali generati da LLM.
     """
     
+    # Configurazione default (definita come attributo di classe per essere disponibile prima)
+    default_settings = {
+        "proactive_enabled": True,
+        "enabled_emotions": {
+            "excitement": {"threshold": 0.7, "weight": 1.0},
+            "anticipation": {"threshold": 0.6, "weight": 0.9},
+            "curiosity": {"threshold": 0.8, "weight": 0.8},
+            "flow_state": {"threshold": 0.75, "weight": 0.7},
+            "confusion": {"threshold": 0.6, "weight": 0.5}
+        },
+        "base_interval_minutes": 10,
+        "escalation_multipliers": [1, 3, 30, 180],  # 10min, 30min, 5h, 30h
+        "quiet_hours": {"start": "23:00", "end": "07:00"},
+        "default_channel": "telegram",
+        "max_daily_proactive": 10
+    }
+    
     def __init__(self, config_path: str = None):
         self.config_path = config_path or os.path.expanduser("~/.openclaw/emotion_config.json")
         self.state_path = os.path.expanduser("~/.openclaw/proactive_state.json")
@@ -32,22 +49,7 @@ class ProactiveTriggerManager:
         # Stato proattivo
         self.state = self._load_state()
         
-        # Configurazione default
-        self.default_settings = {
-            "proactive_enabled": True,
-            "enabled_emotions": {
-                "excitement": {"threshold": 0.7, "weight": 1.0},
-                "anticipation": {"threshold": 0.6, "weight": 0.9},
-                "curiosity": {"threshold": 0.8, "weight": 0.8},
-                "flow_state": {"threshold": 0.75, "weight": 0.7},
-                "confusion": {"threshold": 0.6, "weight": 0.5}
-            },
-            "base_interval_minutes": 10,
-            "escalation_multipliers": [1, 3, 30, 180],  # 10min, 30min, 5h, 30h
-            "quiet_hours": {"start": "23:00", "end": "07:00"},
-            "default_channel": "telegram",
-            "max_daily_proactive": 10
-        }
+
     
     def _load_config(self) -> Dict[str, Any]:
         """Carica configurazione proattiva dal file config principale."""
