@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-# install_emotion_system.sh (v5 - Simplified & Fixed)
-# Installer for OpenClaw Emotion System following official plugin documentation
+# install_emotion_system.sh (v6 - Proactive Emotion Engine v1.3.0)
+# Installer for OpenClaw Emotion System with Proactive Behavior
 # https://docs.openclaw.ai/tools/plugin
+#
+# Version 1.3.0 Features:
+# - Proactive behavior: Agent initiates conversations based on emotions
+# - Auto-refresh web dashboard with real-time metrics
+# - Intelligent rate limiting with escalation
+# - Quiet hours and channel configuration (Telegram/WhatsApp)
 #
 # Key fixes:
 # - package.json now includes "openclaw": { "extensions": [...] }
@@ -207,6 +213,27 @@ else
 fi
 
 echo
+log "Proactive Behavior Setup (NEW in v1.3.0)"
+echo "======================================"
+echo
+success "Proactive emotion engine installed!"
+echo
+echo "The agent can now initiate spontaneous conversations based on emotions."
+echo
+echo "To enable:"
+echo "  /emotions proactive on"
+echo
+echo "To configure channel (telegram/whatsapp):"
+echo "  /emotions proactive channel telegram"
+echo
+echo "To configure quiet hours:"
+echo "  /emotions proactive quiet 23:00-07:00"
+echo
+echo "To check status:"
+echo "  /emotions proactive status"
+echo
+
+echo
 log "Next Steps"
 echo "======================================"
 echo
@@ -245,6 +272,9 @@ echo "  /emotions metacognition - Meta-cognitive analysis"
 echo "  /emotions predict      - Predict emotional trajectory"
 echo "  /emotions personality  - Show personality traits"
 echo "  /emotions config       - Show configuration"
+echo "  /emotions dashboard    - Start web dashboard (http://localhost:8081)"
+echo "  /emotions proactive    - Configure proactive behavior"
+echo "  /emotions proactive on - Enable spontaneous agent-initiated messages"
 echo
 echo "💡 Multilingual Support: Write in any language (IT, ES, FR, DE, etc.)"
 echo "   The system automatically translates for emotion analysis."

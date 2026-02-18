@@ -65,6 +65,16 @@ class EmotionEngine:
             print(f"Warning: Avatar manager initialization failed: {e}")
             self.avatar_manager = None
             self.avatar_enabled = False
+        
+        # Proactive manager - gestisce comportamento proattivo basato su emozioni
+        try:
+            from proactive_manager import ProactiveTriggerManager
+            self.proactive_manager = ProactiveTriggerManager(self.config_path)
+            self.proactive_enabled = True
+        except Exception as e:
+            print(f"Warning: Proactive manager initialization failed: {e}")
+            self.proactive_manager = None
+            self.proactive_enabled = False
 
     def _load_config(self) -> Dict:
         """Load configuration from file or use defaults."""
@@ -896,6 +906,53 @@ class EmotionEngine:
         except Exception as e:
             print(f"Error adapting personality traits: {e}")
             return {"error": str(e)}
+
+    def check_proactive_trigger(self) -> dict:
+        """
+        Controlla se dovrebbe scattare un comportamento proattivo.
+        
+        Returns:
+            dict: {
+                "should_trigger": bool,
+                "emotion": str,
+                "intensity": float,
+                "escalation_level": int
+            }
+        """
+        if not self.proactive_enabled or not self.proactive_manager:
+            return {"should_trigger": False}
+        
+        # Ottieni stato emotivo corrente
+        emotional_state = self.get_emotional_state()
+        
+        # Controlla trigger
+        should_trigger, emotion, intensity = self.proactive_manager.should_trigger(emotional_state)
+        
+        if should_trigger:
+            return {
+                "should_trigger": True,
+                "emotion": emotion,
+                "intensity": intensity,
+                "escalation_level": self.proactive_manager.state.get("current_escalation_level", 0)
+            }
+        
+        return {"should_trigger": False}
+    
+    def mark_proactive_triggered(self, emotion: str, channel: str = None):
+        """Marca che un trigger proattivo è stato attivato."""
+        if self.proactive_manager:
+            self.proactive_manager.mark_triggered(emotion, channel)
+    
+    def mark_proactive_answered(self):
+        """Marca che l'utente ha risposto al messaggio proattivo."""
+        if self.proactive_manager:
+            self.proactive_manager.mark_answered()
+    
+    def get_proactive_status(self) -> dict:
+        """Restituisce lo stato del sistema proattivo."""
+        if not self.proactive_manager:
+            return {"enabled": False, "error": "Proactive manager not available"}
+        return self.proactive_manager.get_status()
 
 
 # CLI interface for testing

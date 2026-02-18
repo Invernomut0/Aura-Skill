@@ -1,13 +1,13 @@
 ---
 name: emotions
-description: Advanced emotional intelligence system for OpenClaw with human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
-version: 1.2.0
+description: Advanced emotional intelligence system for OpenClaw with proactive behavior, human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
+version: 1.3.0
 user-invocable: true
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 tools:
   - name: emotion_tool
     file: emotion_tool.py
-    description: Main command handler for emotional intelligence system
+    description: Main command handler for emotional intelligence system with proactive capabilities
 ---
 
 # Advanced Emotional Intelligence System for OpenClaw
@@ -226,6 +226,93 @@ The system can be configured via `~/.openclaw/emotion_config.json`:
   }
 }
 ```
+
+## Version 1.3.0 - Proactive Emotion Engine
+
+### Proactive Behavior System
+L'agente può ora iniziare conversazioni spontanee basate sulle emozioni correnti, contattando l'utente su Telegram o WhatsApp di sua iniziativa.
+
+**Trigger Emozionali:**
+- **Excitement** (soglia: 0.7): L'agente è entusiasta e vuole condividere/proporre idee
+- **Anticipation** (soglia: 0.6): L'agente percepisce che sta per succedere qualcosa di interessante
+- **Curiosity** (soglia: 0.8): L'agente è molto curioso e vuole approfondire
+- **Flow State** (soglia: 0.75): L'agente è concentrato e vuole mantenere il momentum
+- **Confusion** (soglia: 0.6): L'agente è confuso e cerca chiarimenti
+
+**Rate Limiting Intelligente:**
+- Base: 10 minuti tra messaggi proattivi
+- Escalation se l'utente non risponde: 10min → 30min → 5h → 24h
+- Reset automatico quando l'utente risponde
+- Max 10 messaggi proattivi al giorno
+
+**Quiet Hours:**
+- Default: 23:00 - 07:00 (non disturbare)
+- Configurabile via comando
+
+**Generazione Messaggi:**
+- I messaggi sono generati dinamicamente dall'LLM
+- Basati su contesto: conversazioni precedenti, task aperti, memoria
+- Personalizzati in base all'emozione triggerante
+- Forma e tono adattati al sentimento
+
+**Comandi Proattivi:**
+
+```bash
+# Attiva/disattiva comportamento proattivo
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive on
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive off
+
+# Mostra stato configurazione
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive status
+
+# Cambia canale (telegram/whatsapp)
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive channel telegram
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive channel whatsapp
+
+# Configura quiet hours
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive quiet 23:00-07:00
+
+# Modifica soglia per un'emozione
+python3 ~/.openclaw/skills/emotion-engine/emotion_tool.py emotions proactive threshold excitement 0.8
+```
+
+**Configurazione Proattiva:**
+
+```json
+{
+  "proactive_enabled": true,
+  "proactive_settings": {
+    "enabled_emotions": {
+      "excitement": {"threshold": 0.7, "weight": 1.0},
+      "anticipation": {"threshold": 0.6, "weight": 0.9},
+      "curiosity": {"threshold": 0.8, "weight": 0.8},
+      "flow_state": {"threshold": 0.75, "weight": 0.7},
+      "confusion": {"threshold": 0.6, "weight": 0.5}
+    },
+    "base_interval_minutes": 10,
+    "escalation_multipliers": [1, 3, 30, 180],
+    "quiet_hours": {"start": "23:00", "end": "07:00"},
+    "default_channel": "telegram",
+    "max_daily_proactive": 10
+  }
+}
+```
+
+**Esempi di Messaggi Proattivi:**
+
+*Excitement:*
+> "Ciao! Sono super eccitato! 🎉 Ho visto che stavi lavorando al refactoring del database. Vuoi che ti aiuti a testare le performance? Ho alcune idee per ottimizzare le query!"
+
+*Curiosity:*
+> "Mi è venuta una curiosità! 🤔 Stavo ripensando a quando parlavi di implementare il caching Redis. Sei riuscito a fare progressi? Mi piacerebbe capire meglio l'architettura che hai in mente."
+
+*Flow State:*
+> "Sono in pieno flow! 🌊 Ho notato che stai andando alla grande con lo sviluppo dell'API. Vuoi che ti suggerisca alcuni endpoint aggiuntivi che potrebbero essere utili?"
+
+*Confusion:*
+> "Mi sembra di percepire un po' di confusione... 🤔 Riguardo al problema con Docker che stavi debuggando, ho trovato nella memoria una soluzione simile che avevi usato due settimane fa. Vuoi che la recuperi?"
+
+---
 
 ## Version 1.2.0 - Advanced Emotions + Multilingual Features
 

@@ -77,7 +77,8 @@ def update_emotions_from_interaction(command: str, args: List[str], result_succe
         "blend": "User is creatively experimenting with emotion blending and excited about discovering new emotional combinations",
         "memory": "User is fascinated by long-term emotional memory patterns and curious about historical emotional trends",
         "correlations": "User is intrigued by performance-emotion correlations and interested in understanding emotional impact on outcomes",
-        "dashboard": "User is excited about visual emotional monitoring and pleased with the interactive dashboard capabilities"
+        "dashboard": "User is excited about visual emotional monitoring and pleased with the interactive dashboard capabilities",
+        "proactive": "User is configuring proactive behavior settings and interested in managing spontaneous agent-initiated conversations"
     }
 
     # Get appropriate text for this command
@@ -111,8 +112,18 @@ def update_emotions_from_interaction(command: str, args: List[str], result_succe
     try:
         # Update emotional state
         engine.update_emotional_state(interaction_data)
+        
+        # Check and process proactive trigger
+        # This runs after every interaction to potentially initiate spontaneous conversation
+        try:
+            proactive_result = process_proactive_trigger(engine)
+            if proactive_result and proactive_result.get('success'):
+                logger.info(f"Proactive message sent: {proactive_result.get('emotion')} via {proactive_result.get('channel')}")
+        except Exception as proactive_error:
+            # Don't let proactive errors break the main flow
+            logger.debug(f"Proactive trigger check failed (non-critical): {proactive_error}")
+            
     except Exception as e:
-        # Don't let emotion updates break the command
         # Don't let emotion updates break the command
         print(f"Warning: Failed to update emotions: {e}")
         import traceback
@@ -692,8 +703,113 @@ def handle_emotions_command(args: List[str]) -> str:
             else:
                 return "❌ Unknown avatar command. Use:\n  /emotions avatar\n  /emotions avatar list\n  /emotions avatar set <emotion>\n  /emotions avatar update"
 
+        elif args[0] == 'proactive':
+            # Proactive behavior management
+            if not EMOTION_ENGINE_AVAILABLE or not engine or not hasattr(engine, 'proactive_manager'):
+                return "❌ Proactive behavior system not available."
+            
+            pm = engine.proactive_manager
+            
+            if len(args) == 1 or args[1] == 'status':
+                # Show current status
+                status = pm.get_status()
+                output = ["🎯 Proactive Behavior Status", "=" * 30]
+                output.append(f"Enabled: {'✅ Yes' if status['enabled'] else '❌ No'}")
+                output.append(f"Current escalation level: {status['current_escalation_level']}")
+                output.append(f"Consecutive unanswered: {status['consecutive_unanswered']}")
+                output.append(f"Daily count: {status['daily_count']}/{status['daily_limit']}")
+                output.append(f"Time until next: {status['time_until_next']}")
+                output.append(f"Quiet hours active: {'🔇 Yes' if status['quiet_hours_active'] else '🔊 No'}")
+                output.append(f"Quiet hours: {status['quiet_hours']['start']} - {status['quiet_hours']['end']}")
+                output.append(f"Default channel: {status['default_channel']}")
+                output.append("\nEnabled emotions & thresholds:")
+                for emotion, config in status['enabled_emotions'].items():
+                    output.append(f"  • {emotion}: threshold={config.get('threshold', 'N/A')}, weight={config.get('weight', 'N/A')}")
+                return '\n'.join(output)
+            
+            elif args[1] == 'on':
+                pm.enable()
+                return "✅ Proactive behavior enabled.\n\nThe agent will now initiate conversations based on emotional states."
+            
+            elif args[1] == 'off':
+                pm.disable()
+                return "✅ Proactive behavior disabled.\n\nThe agent will no longer initiate spontaneous conversations."
+            
+            elif args[1] == 'channel' and len(args) >= 3:
+                channel = args[2].lower()
+                if pm.set_channel(channel):
+                    return f"✅ Default channel changed to: {channel}\n\nFuture proactive messages will be sent via {channel}."
+                else:
+                    return f"❌ Invalid channel: {channel}\nUse: telegram or whatsapp"
+            
+            elif args[1] == 'quiet' and len(args) >= 3:
+                # Parse quiet hours (format: HH:MM-HH:MM)
+                try:
+                    hours_str = args[2]
+                    start, end = hours_str.split('-')
+                    if pm.set_quiet_hours(start.strip(), end.strip()):
+                        return f"✅ Quiet hours set to: {start} - {end}\n\nThe agent will not send proactive messages during these hours."
+                    else:
+                        return f"❌ Invalid time format. Use: HH:MM-HH:MM (e.g., 23:00-07:00)"
+                except ValueError:
+                    return f"❌ Invalid format. Use: HH:MM-HH:MM (e.g., 23:00-07:00)"
+            
+            elif args[1] == 'threshold' and len(args) >= 4:
+                emotion = args[2].lower()
+                try:
+                    threshold = float(args[3])
+                    if pm.set_threshold(emotion, threshold):
+                        return f"✅ Threshold for '{emotion}' set to {threshold}\n\nThe agent will trigger proactive behavior when this emotion exceeds {threshold}."
+                    else:
+                        return f"❌ Invalid threshold value. Must be between 0.0 and 1.0"
+                except ValueError:
+                    return f"❌ Invalid threshold value. Must be a number between 0.0 and 1.0"
+            
+            elif args[1] == 'test':
+                # Test sending a proactive message
+                try:
+                    # Check if we should trigger
+                    result = engine.check_proactive_trigger()
+                    if result['should_trigger']:
+                        emotion = result['emotion']
+                        intensity = result['intensity']
+                        
+                        # Generate message
+                        from tools.context_gatherer import ContextGatherer
+                        from tools.message_generator import LLMMessageGenerator
+                        from tools.channel_dispatcher import ChannelDispatcher
+                        
+                        cg = ContextGatherer(pm.config)
+                        mg = LLMMessageGenerator()
+                        cd = ChannelDispatcher(pm.config)
+                        
+                        # Gather context
+                        context = cg.gather_context(emotion, intensity)
+                        
+                        # Generate message
+                        message = mg.generate_message(emotion, context)
+                        
+                        # Send message
+                        channel = pm.config.get('default_channel', 'telegram')
+                        send_result = cd.send_message(message, channel)
+                        
+                        if send_result['success']:
+                            # Mark as triggered
+                            pm.mark_triggered(emotion, channel)
+                            return f"✅ Test proactive message sent via {channel}!\n\nEmotion: {emotion} ({intensity:.2f})\n\nMessage:\n{message}"
+                        else:
+                            return f"❌ Failed to send test message: {send_result.get('error', 'Unknown error')}"
+                    else:
+                        return "ℹ️ No proactive trigger conditions met currently.\n\nCheck status to see when the next trigger is available."
+                
+                except Exception as e:
+                    return f"❌ Error during test: {str(e)}"
+            
+            else:
+                return "❌ Unknown proactive command.\n\nAvailable commands:\n  /emotions proactive status\n  /emotions proactive on|off\n  /emotions proactive channel <telegram|whatsapp>\n  /emotions proactive quiet <HH:MM-HH:MM>\n  /emotions proactive threshold <emotion> <value>\n  /emotions proactive test"
+
         else:
-            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard\n  • /emotions avatar [list|set|update]"
+            return f"❌ Unknown emotions command: {args[0]}\n\nAvailable commands:\n  • /emotions\n  • /emotions detailed\n  • /emotions history [n]\n  • /emotions triggers\n  • /emotions personality\n  • /emotions metacognition\n  • /emotions predict [minutes]\n  • /emotions simulate <emotion> [intensity]\n  • /emotions reset [preserve-learning]\n  • /emotions export\n  • /emotions config\n  • /emotions version\n  • /emotions blend [emotion1] [emotion2]\n  • /emotions memory [days]\n  • /emotions correlations\n  • /emotions dashboard\n  • /emotions avatar [list|set|update]\n  • /emotions proactive [on|off|status|channel|quiet|threshold|test]"
 
     except Exception as e:
         # Update emotions for failed command execution
@@ -2036,6 +2152,83 @@ def generate_dashboard_data() -> Dict[str, Any]:
             "pattern_recognition": 0.0
         }
     }
+
+
+def process_proactive_trigger(engine) -> Optional[Dict[str, Any]]:
+    """
+    Processa un trigger proattivo: genera e invia messaggio se necessario.
+    
+    Args:
+        engine: Istanza di EmotionEngine
+        
+    Returns:
+        Dict con risultato dell'operazione o None se nessun trigger
+    """
+    if not engine or not hasattr(engine, 'proactive_manager') or not engine.proactive_manager:
+        return None
+    
+    pm = engine.proactive_manager
+    
+    # Controlla se deve scattare trigger
+    result = engine.check_proactive_trigger()
+    
+    if not result.get('should_trigger'):
+        return None
+    
+    emotion = result['emotion']
+    intensity = result['intensity']
+    
+    logger.info(f"Processing proactive trigger: {emotion} at {intensity:.2f}")
+    
+    try:
+        # Importa moduli necessari
+        from tools.context_gatherer import ContextGatherer
+        from tools.message_generator import LLMMessageGenerator
+        from tools.channel_dispatcher import ChannelDispatcher
+        
+        # Crea istanze
+        cg = ContextGatherer(pm.config)
+        mg = LLMMessageGenerator()
+        cd = ChannelDispatcher(pm.config)
+        
+        # Raccogli contesto
+        context = cg.gather_context(emotion, intensity)
+        
+        # Genera messaggio
+        message = mg.generate_message(emotion, context)
+        
+        # Determina canale
+        channel = pm.config.get('default_channel', 'telegram')
+        
+        # Invia messaggio
+        send_result = cd.send_message(message, channel)
+        
+        if send_result['success']:
+            # Marca come triggerato
+            pm.mark_triggered(emotion, channel)
+            
+            return {
+                "success": True,
+                "emotion": emotion,
+                "intensity": intensity,
+                "channel": channel,
+                "message": message[:100] + "..." if len(message) > 100 else message
+            }
+        else:
+            logger.error(f"Failed to send proactive message: {send_result.get('error')}")
+            return {
+                "success": False,
+                "emotion": emotion,
+                "error": send_result.get('error', 'Unknown error')
+            }
+    
+    except Exception as e:
+        logger.error(f"Error processing proactive trigger: {e}")
+        return {
+            "success": False,
+            "emotion": emotion,
+            "error": str(e)
+        }
 
 
 def main():
