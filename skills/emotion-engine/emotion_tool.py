@@ -774,6 +774,17 @@ def handle_emotions_command(args: List[str]) -> str:
                         emotion = result['emotion']
                         intensity = result['intensity']
                         
+                        # Determine channel (from args or default)
+                        channel = args[2].lower() if len(args) >= 3 else pm.config.get('default_channel', 'telegram')
+                        if channel not in ['telegram', 'whatsapp']:
+                            return f"❌ Invalid channel: {channel}\nUse: telegram or whatsapp"
+                        
+                        # Check if target is configured
+                        target_key = f"{channel}_target"
+                        target = pm.config.get(target_key, '')
+                        if not target:
+                            return f"❌ Target not configured for {channel}\n\nUse: /emotions proactive target {channel} <chat_id/phone>\n\nExample:\n  /emotions proactive target telegram 123456789"
+                        
                         # Generate message
                         from tools.context_gatherer import ContextGatherer
                         from tools.message_generator import LLMMessageGenerator
@@ -789,16 +800,21 @@ def handle_emotions_command(args: List[str]) -> str:
                         # Generate message
                         message = mg.generate_message(emotion, context)
                         
-                        # Send message
-                        channel = pm.config.get('default_channel', 'telegram')
-                        send_result = cd.send_message(message, channel)
+                        # Send message with target
+                        send_result = cd.send_message(message, channel, target=target)
                         
                         if send_result['success']:
                             # Mark as triggered
                             pm.mark_triggered(emotion, channel)
-                            return f"✅ Test proactive message sent via {channel}!\n\nEmotion: {emotion} ({intensity:.2f})\n\nMessage:\n{message}"
+                            output = f"✅ Test proactive message sent via {channel} to {target}!\n\n"
+                            output += f"Emotion: {emotion} ({intensity:.2f})\n"
+                            output += f"Message:\n{message}"
+                            if send_result.get('output'):
+                                output += f"\n\nOutput: {send_result['output'][:200]}"
+                            return output
                         else:
-                            return f"❌ Failed to send test message: {send_result.get('error', 'Unknown error')}"
+                            error_msg = send_result.get('error', 'Unknown error')
+                            return f"❌ Failed to send test message: {error_msg}\n\nMake sure:\n1. Target is correct: {target}\n2. OpenClaw is configured for {channel}\n3. You have permission to send messages"
                     else:
                         return "ℹ️ No proactive trigger conditions met currently.\n\nCheck status to see when the next trigger is available."
                 
@@ -2193,6 +2209,20 @@ def process_proactive_trigger(engine) -> Optional[Dict[str, Any]]:
     logger.info(f"Processing proactive trigger: {emotion} at {intensity:.2f}")
     
     try:
+        # Determina canale e verifica target
+        channel = pm.config.get('default_channel', 'telegram')
+        target_key = f"{channel}_target"
+        target = pm.config.get(target_key, '')
+        
+        if not target:
+            logger.warning(f"Cannot send proactive message: target not configured for {channel}")
+            logger.info(f"Configure with: /emotions proactive target {channel} <chat_id/phone>")
+            return {
+                "success": False,
+                "emotion": emotion,
+                "error": f"Target not configured for {channel}"
+            }
+        
         # Importa moduli necessari
         from tools.context_gatherer import ContextGatherer
         from tools.message_generator import LLMMessageGenerator
@@ -2209,21 +2239,20 @@ def process_proactive_trigger(engine) -> Optional[Dict[str, Any]]:
         # Genera messaggio
         message = mg.generate_message(emotion, context)
         
-        # Determina canale
-        channel = pm.config.get('default_channel', 'telegram')
-        
-        # Invia messaggio
-        send_result = cd.send_message(message, channel)
+        # Invia messaggio con target
+        send_result = cd.send_message(message, channel, target=target)
         
         if send_result['success']:
             # Marca come triggerato
             pm.mark_triggered(emotion, channel)
             
+            logger.info(f"Proactive message sent successfully via {channel} to {target}")
             return {
                 "success": True,
                 "emotion": emotion,
                 "intensity": intensity,
                 "channel": channel,
+                "target": target,
                 "message": message[:100] + "..." if len(message) > 100 else message
             }
         else:
@@ -2231,6 +2260,8 @@ def process_proactive_trigger(engine) -> Optional[Dict[str, Any]]:
             return {
                 "success": False,
                 "emotion": emotion,
+                "channel": channel,
+                "target": target,
                 "error": send_result.get('error', 'Unknown error')
             }
     

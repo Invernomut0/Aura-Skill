@@ -125,6 +125,7 @@ class ChannelDispatcher:
             logger.info(f"Invio messaggio Telegram: {message[:50]}...")
             
             # Esegui comando
+            logger.info(f"Esecuzione comando: {cmd[:100]}...")
             result = subprocess.run(
                 cmd,
                 shell=True,
@@ -133,20 +134,28 @@ class ChannelDispatcher:
                 timeout=30
             )
             
+            # Log output per debugging
+            if result.stdout:
+                logger.info(f"Command stdout: {result.stdout}")
+            if result.stderr:
+                logger.warning(f"Command stderr: {result.stderr}")
+            
             if result.returncode == 0:
                 logger.info("Messaggio Telegram inviato con successo")
                 return {
                     "success": True,
                     "channel": "telegram",
-                    "message_preview": message[:100]
+                    "message_preview": message[:100],
+                    "output": result.stdout
                 }
             else:
-                error_msg = result.stderr or "Errore sconosciuto"
-                logger.error(f"Errore invio Telegram: {error_msg}")
+                error_msg = result.stderr or result.stdout or "Errore sconosciuto"
+                logger.error(f"Errore invio Telegram (exit code {result.returncode}): {error_msg}")
                 return {
                     "success": False,
                     "channel": "telegram",
-                    "error": error_msg
+                    "error": error_msg,
+                    "exit_code": result.returncode
                 }
         
         except subprocess.TimeoutExpired:
