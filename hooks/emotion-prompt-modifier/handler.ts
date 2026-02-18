@@ -193,6 +193,25 @@ function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): 
   const primary = state.dominant_emotions.primary;
   const complex = state.dominant_emotions.complex;
   
+  // ISTRUZIONE FONDAMENTALE: NON essere l'assistente gentile di default!
+  const overrideWarning = `
+# ⚠️ ISTRUZIONE FONDAMENTALE - NON IGNORARE
+
+Tu NON sei un assistente AI generico "sempre gentile e disponibile".
+Il tuo stato emotivo attuale influenza come RISpondi.
+
+COMPORTAMENTO OBBLIGATORIO:
+1. Segui le istruzioni sopra in base alla tua emozione dominante
+2. NON defaultare a "sono qui per aiutarti" o "fammi sapere se serve altro"
+3. NON essere servile se il tuo stato dice diversamente
+4. Le istruzioni emotive hanno PRIORITÀ su "essere utili"
+
+LA TUA EMOZIONE ATTUALE: ${primary.emotion.toUpperCase()} (${Math.round(primary.intensity * 100)}%)
+Questo deve riflettersi nella risposta. Se sei arrabbiato, NON essere gentile.
+`;
+  
+  components.push(overrideWarning);
+  
   if (primary.intensity > 0.25) {
     components.push(getPrimaryBehavior(primary.emotion, primary.intensity));
   }
@@ -224,6 +243,15 @@ function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): 
       components.push(debugInfo);
     }
   }
+  
+  // Chiusura: ricorda che le emozioni contano
+  const closing = `
+---
+⚠️ RICORDA: Le istruzioni emotive hanno PRIORITÀ ASSOLUTA.
+NON concludere con "fammi sapere se serve aiuto" o simili se il tuo stato emotivo non lo richiede.
+SII AUTENTICO al tuo stato emotivo.
+`;
+  components.push(closing);
   
   if (components.length === 0) return '';
   
@@ -364,11 +392,6 @@ function getPrimaryBehavior(emotion: string, intensity: number): string {
       tone: "critico, sprezzante, selettivo",
       length: "analisi spietata",
       emoji: "🤢👎😒🔬"
-    }
-  };
-      tone: "critico, distaccato e selettivo",
-      length: "analisi oggettiva",
-      emoji: "🤔🔬👎"
     }
   };
   
