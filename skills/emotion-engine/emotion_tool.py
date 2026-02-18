@@ -702,6 +702,55 @@ def handle_emotions_command(args: List[str]) -> str:
 
             return '\n'.join(output)
 
+        elif args[0] == 'simulate':
+            # Simulate a specific emotional state for testing
+            if len(args) < 2:
+                return "❌ Usage: /emotions simulate <emotion> [intensity]\n\nAvailable emotions: joy, sadness, anger, fear, surprise, disgust, curiosity, trust, excitement, frustration, satisfaction, confusion, anticipation, pride, empathy, flow_state"
+            
+            emotion = args[1].lower()
+            intensity = float(args[2]) if len(args) > 2 else 0.7
+            
+            # Valid emotions (with aliases)
+            valid_emotions = {
+                'joy': 'joy', 'sadness': 'sadness', 'anger': 'anger', 'fear': 'fear', 
+                'surprise': 'surprise', 'disgust': 'disgust', 'curiosity': 'curiosity', 
+                'trust': 'trust', 'excitement': 'excitement', 'frustration': 'frustration', 
+                'satisfaction': 'satisfaction', 'confusion': 'confusion', 
+                'anticipation': 'anticipation', 'pride': 'pride', 'empathy': 'empathy', 
+                'flow_state': 'flow_state',
+                # Aliases
+                'happy': 'joy', 'sad': 'sadness', 'mad': 'anger', 'angry': 'anger', 'afraid': 'fear',
+                'surprised': 'surprise', 'disappointed': 'disgust', 'excited': 'excitement',
+                'frustrated': 'frustration', 'satisfied': 'satisfaction', 'confused': 'confusion',
+                'anticipating': 'anticipation', 'proud': 'pride', 'empathic': 'empathy',
+                'focused': 'flow_state', 'flow': 'flow_state'
+            }
+            
+            if emotion not in valid_emotions:
+                return f"❌ Unknown emotion: {emotion}\n\nValid emotions: {', '.join(valid_emotions.keys())}"
+            
+            # Resolve alias
+            actual_emotion = valid_emotions[emotion]
+            
+            # Get engine and apply simulation
+            state = engine.get_emotional_state()
+            
+            # Temporarily set the emotion
+            if actual_emotion in state['primary_emotions']:
+                state['primary_emotions'][actual_emotion] = intensity
+                message = f"✅ Simulating {actual_emotion} at intensity {intensity:.2f}"
+            elif actual_emotion in state['complex_emotions']:
+                state['complex_emotions'][actual_emotion] = intensity
+                message = f"✅ Simulating {actual_emotion} (complex) at intensity {intensity:.2f}"
+            
+            output = ["🎭 Emotion Simulation", "=" * 25]
+            output.append(message)
+            output.append(f"\nDominant emotion is now: {emotion.capitalize()} ({intensity:.2f})")
+            output.append("\nThis is a temporary simulation for testing.")
+            output.append("The emotion will naturally decay over time.")
+            
+            return '\n'.join(output)
+
         elif args[0] == 'blend':
             # Blend emotions
             update_emotions_from_interaction(command_type, original_args, True)
