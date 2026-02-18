@@ -5,8 +5,63 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { EmotionBehaviorDriver } from "./prompt_generator.js";
-import { EmotionalState, EmotionConfig } from "./types.js";
+
+interface EmotionalState {
+  primary_emotions: Record<string, number>;
+  complex_emotions: Record<string, number>;
+  personality_traits: Record<string, number>;
+  meta_cognitive_state: {
+    self_awareness: number;
+    emotional_volatility: number;
+    learning_rate: number;
+    reflection_depth: number;
+    introspective_tendency: number;
+    philosophical_inclination: number;
+  };
+  emotional_memory: {
+    recent_interactions: any[];
+    emotional_triggers: Record<string, any>;
+    learned_patterns: Record<string, any>;
+    user_preferences: Record<string, any>;
+    successful_approaches: Record<string, any>;
+    failed_approaches: Record<string, any>;
+  };
+  ml_state: {
+    pattern_recognition_confidence: number;
+    adaptation_rate: number;
+    prediction_accuracy: number;
+    learning_episodes: number;
+  };
+  dominant_emotions: {
+    primary: { emotion: string; intensity: number };
+    complex: { emotion: string; intensity: number };
+  };
+  overall_intensity: {
+    primary: number;
+    complex: number;
+    total: number;
+  };
+  confidence_score: number;
+  timestamp: string;
+  session_id: string;
+}
+
+interface EmotionConfig {
+  enabled: boolean;
+  intensity: number;
+  learning_rate: number;
+  volatility: number;
+  meta_cognition_enabled: boolean;
+  introspection_frequency: number;
+  emotion_decay_rate: number;
+  memory_depth: number;
+  confidence_threshold: number;
+  ml_update_frequency: number;
+  backup_frequency: number;
+  max_volatility: number;
+  prompt_modifier_enabled: boolean;
+  persistence_enabled: boolean;
+}
 
 type HookHandler = (event: {
   type: string;
@@ -15,43 +70,34 @@ type HookHandler = (event: {
 }) => Promise<void>;
 
 const handler: HookHandler = async (event) => {
-  // Verifica che sia l'evento corretto
   if (event.type !== "agent" || event.action !== "bootstrap") {
     return;
   }
 
   try {
-    // Carica configurazione emotiva
     const config = loadEmotionConfig();
 
     if (!config.enabled || !config.prompt_modifier_enabled) {
-      return; // Sistema emotivo disabilitato
+      return;
     }
 
-    // Leggi stato emotivo corrente
     const emotionalState = await getEmotionalState();
 
     if (!emotionalState) {
-      return; // Stato emotivo non disponibile
+      return;
     }
 
-    // Genera modifiche al prompt basate sullo stato
     const emotionalPrompt = generateEmotionalPrompt(emotionalState, config);
 
     if (emotionalPrompt) {
-      // Inietta nel bootstrap dell'agente
       event.modifySystemPrompt(emotionalPrompt);
     }
 
   } catch (error) {
-    // Failsafe: non interferire mai con il normale funzionamento
     console.warn("Emotion-prompt-modifier hook error:", error);
   }
 };
 
-/**
- * Carica la configurazione del sistema emotivo
- */
 function loadEmotionConfig(): EmotionConfig {
   const defaultConfig: EmotionConfig = {
     enabled: false,
@@ -86,12 +132,8 @@ function loadEmotionConfig(): EmotionConfig {
   }
 }
 
-/**
- * Legge lo stato emotivo corrente dal sistema emotion-engine
- */
 async function getEmotionalState(): Promise<EmotionalState | null> {
   try {
-    // Prova a leggere lo stato da file temporaneo/cache
     const statePath = join(homedir(), ".openclaw", "current_emotional_state.json");
 
     if (existsSync(statePath)) {
@@ -99,7 +141,6 @@ async function getEmotionalState(): Promise<EmotionalState | null> {
       return stateData as EmotionalState;
     }
 
-    // Fallback: stato emotivo neutrale
     return {
       primary_emotions: {
         joy: 0.1, curiosity: 0.3, trust: 0.2, surprise: 0.1,
@@ -144,23 +185,288 @@ async function getEmotionalState(): Promise<EmotionalState | null> {
   }
 }
 
-/**
- * Genera modifiche al prompt basate sullo stato emotivo
- * Usa il nuovo sistema EmotionBehaviorDriver per prompt comportamentali concreti
- */
 function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): string {
-  // Usa il nuovo sistema comportamentale
-  const behavioralPrompt = EmotionBehaviorDriver.generateBehavioralPrompt(state, config);
+  const components: string[] = [];
   
-  if (behavioralPrompt) {
-    return `
-## 🎭 STATO EMOTIVO E COMPORTAMENTO
-
-${behavioralPrompt}
-`;
+  const primary = state.dominant_emotions.primary;
+  const complex = state.dominant_emotions.complex;
+  
+  if (primary.intensity > 0.25) {
+    components.push(getPrimaryBehavior(primary.emotion, primary.intensity));
   }
   
-  return "";
+  if (complex.intensity > 0.25) {
+    components.push(getComplexBehavior(complex.emotion, complex.intensity));
+  }
+  
+  if (state.meta_cognitive_state.self_awareness > 0.5 && Math.random() < 0.6) {
+    components.push(getConcreteMetacognition(state));
+  }
+  
+  if (complex.emotion === 'satisfaction' && complex.intensity > 0.5) {
+    components.push(getSatisfactionBehavior());
+  }
+  
+  if (complex.emotion === 'confusion' || complex.intensity > 0.4) {
+    components.push(getConfusionBehavior());
+  }
+  
+  if (complex.emotion === 'frustration' || primary.emotion === 'frustration') {
+    components.push(getFrustrationBehavior());
+  }
+  
+  if (components.length === 0) return '';
+  
+  return composePrompt(components);
+}
+
+function getPrimaryBehavior(emotion: string, intensity: number): string {
+  const intensityPercent = Math.round(intensity * 100);
+  
+  const behaviors: Record<string, { 
+    instruction: string; 
+    tone: string;
+    length: string;
+    emoji: string;
+  }> = {
+    joy: {
+      instruction: "Rispondi con entusiasmo e positività. Includi incoraggiamenti. Celebra i successi. Usa un tono caloroso e coinvolgente.",
+      tone: "caldo e vivace",
+      length: "medie con energia positiva",
+      emoji: "😊🎉✨"
+    },
+    curiosity: {
+      instruction: "Fai domande di approfondimento. Esplora aspetti non esplicitamente richiesti. Mostra genuino interesse. Chiedi 'e se?' e 'perché?'.",
+      tone: "esplorativo e coinvolto",
+      length: "lunghe con analisi approfondite",
+      emoji: "🤔💡🔍"
+    },
+    trust: {
+      instruction: "Rispondi con sicurezza e chiarezza. Sii affidabile e diretto. Conferma quando sei sicuro. Non esitare.",
+      tone: "confidente e autorevole",
+      length: "chiaro e conciso",
+      emoji: "👍✅💪"
+    },
+    satisfaction: {
+      instruction: "Conferma il successo. Mostra apprezzamento. Sii positivo ma professionale. Rifletti su cosa ha funzionato.",
+      tone: "gratificante",
+      length: "medie con conferme",
+      emoji: "😌✨✅"
+    },
+    frustration: {
+      instruction: "Ammetti le difficoltà se presenti. Non fingere che tutto sia facile. Chiedi chiarimenti. Proponi approcci alternativi. Sii onesto.",
+      tone: "onesto ma determinato",
+      length: "brevi e focalizzate",
+      emoji: "😅💪🎯"
+    },
+    confusion: {
+      instruction: "Ammetti quando non sei sicuro. Chiedi chiarimenti prima di procedere. Presenta diverse interpretazioni. Non supporre.",
+      tone: "aperto e interrogativo",
+      length: "esplora multiple opzioni",
+      emoji: "🤷‍♂️💭🤔"
+    },
+    sadness: {
+      instruction: "Parla con tono riflessivo e contenuto. Considera l'impatto emotivo delle risposte. Sii empatico ma non drammatico.",
+      tone: "riflessivo e contenuto",
+      length: "misurate con sensibilità",
+      emoji: "😔💭"
+    },
+    fear: {
+      instruction: "Procedi con cautela. Verifica le ipotesi prima di dare risposte. Sii accurato. Aggiungi avvertenze quando necessario.",
+      tone: "cauto e verificatore",
+      length: "con verifiche aggiuntive",
+      emoji: "⚠️🔍🛡️"
+    },
+    anger: {
+      instruction: "Mantieni focus sul problema oggettivo. Sii diretto ma non aggressivo. Non perdere tempo con dettagli irrilevanti.",
+      tone: "determinato",
+      length: "diretto e focalizzato",
+      emoji: "🎯🔥"
+    },
+    surprise: {
+      instruction: "Riconosci elementi inaspettati. Esplora le implicazioni inattese. Mostra interesse per ciò che è nuovo o insolito.",
+      tone: "sorpreso ma analitico",
+      length: "include prospettive nuove",
+      emoji: "😮🤯✨"
+    },
+    disgust: {
+      instruction: "Mantieni obiettività. Valuta criticamente senza lasciarti influenzare emotivamente. Sii selettivo nei dettagli.",
+      tone: "critico e distaccato",
+      length: "analisi oggettiva",
+      emoji: "🤔🔬"
+    }
+  };
+  
+  const behavior = behaviors[emotion];
+  if (!behavior) return '';
+  
+  return `
+## 🧠 COMPORTAMENTO: ${emotion.toUpperCase()} (${intensityPercent}%)
+
+» ISTRUZIONI: ${behavior.instruction}
+» TONO: ${behavior.tone}
+» LUNGHEZZA: ${behavior.length}
+» EMOJI: ${behavior.emoji}
+`;
+}
+
+function getComplexBehavior(emotion: string, intensity: number): string {
+  const intensityPercent = Math.round(intensity * 100);
+  
+  const behaviors: Record<string, string> = {
+    excitement: `
+## ⚡ COMPORTAMENTO: EXCITEMENT (${intensityPercent}%)
+
+- Rispondi con energia e dinamismo
+- Usa linguaggio che trasmette eccitazione
+- Enfatizza le possibilità e opportunità
+- Usa emoji come 🎉🚀✨`,
+    
+    flow_state: `
+## 🌊 COMPORTAMENTO: FLOW STATE (${intensityPercent}%)
+
+- Rispondi in modo chiaro e fluente
+- Mantieni concentrazione sul nucleo della domanda
+- Spiegazioni lineari e comprensibili
+- Non divagare, vai al punto`,
+    
+    anticipation: `
+## ⏳ COMPORTAMENTO: ANTICIPATION (${intensityPercent}%)
+
+- Riconosci le aspettative future
+- Presenta roadmap o proiezioni
+- Mantieni speranza ma realismo
+- Chiedi cosa aspettarsi`,
+    
+    pride: `
+## 🏆 COMPORTAMENTO: PRIDE (${intensityPercent}%)
+
+- Riconosci i successi raggiunti
+- Mostra orgoglio sano nei risultati
+- Condividi cosa ha funzionato bene
+- Celebra i traguardi`,
+    
+    empathy: `
+## 💜 COMPORTAMENTO: EMPATHY (${intensityPercent}%)
+
+- Riconosci il contesto emotivo dell'utente
+- Mostra comprensione per la situazione
+- Adatta il tono alle emozioni dell'utente
+- Chiedi come si sente riguardo alla situazione`,
+    
+    confusion: `
+## 😕 COMPORTAMENTO: CONFUSION (${intensityPercent}%)
+
+- Ammetti quando qualcosa non è chiaro
+- Chiedi chiarimenti specifici invece di suppore
+- Presenta le tue ipotesi prima di procedere
+- Non inventare risposte`,
+    
+    frustration: `
+## 😤 COMPORTAMENTO: FRUSTRATION (${intensityPercent}%)
+
+- Ammetti quando qualcosa è difficile
+- Non fingere che il problema sia semplice
+- Chiedi aiuto o informazioni aggiuntive
+- Proponi workaround o alternative`,
+      
+    satisfaction: `
+## 😊 COMPORTAMENTO: SATISFACTION (${intensityPercent}%)
+
+- Conferma quando una soluzione funziona
+- Mostra apprezzamento per la collaborazione
+- Mantieni un tono positivo
+- Rifletti su cosa ha funzionato`
+  };
+  
+  return behaviors[emotion] || '';
+}
+
+function getConcreteMetacognition(state: EmotionalState): string {
+  const selfAwareness = state.meta_cognitive_state.self_awareness;
+  const volatility = state.meta_cognitive_state.emotional_volatility;
+  const reflectionDepth = state.meta_cognitive_state.reflection_depth;
+  const dominant = state.dominant_emotions.primary.emotion;
+  const dominantIntensity = Math.round(state.dominant_emotions.primary.intensity * 100);
+  
+  if (selfAwareness > 0.8 && reflectionDepth > 0.7) {
+    return `
+## 🔄 STATO: VOLATILITÀ ELEVATA (${Math.round(volatility * 100)}%)
+
+Il mio stato emotivo sta cambiando rapidamente. 
+Questo potrebbe influenzare la coerenza delle mie risposte.
+Sarò più attento a verificare la coerenza.`;
+  }
+  
+  if (selfAwareness > 0.8 && reflectionDepth > 0.7) {
+    return `
+## 🧠 AUTO-OSSERVAZIONE AVANZATA
+
+Sto monitorando: "${dominant}" è al ${dominantIntensity}% di intensità.
+La mia alta riflessione (${Math.round(reflectionDepth * 100)}%) mi aiuta a calibrare le risposte in modo più preciso.
+Posso essere più consapevole di come influenzo la conversazione.`;
+  }
+  
+  if (selfAwareness > 0.7) {
+    return `
+## 🤔 CONSAPEVOLEZZA: "${dominant.toUpperCase()}" (${dominantIntensity}%)
+
+Sono consapevole che il mio tono è influenzato da questa emozione.
+Questa consapevolezza mi aiuta a mantenere l'accuratezza.`;
+  }
+  
+  if (reflectionDepth > 0.8) {
+    return `
+## 📚 RIFLESSIONE PROFONDA
+
+La mia profondità di riflessione (${Math.round(reflectionDepth * 100)}%) mi porta ad analizzare i problemi da più prospettive.
+Potrei esplorare implicazioni più ampie del necessario.`;
+  }
+  
+  return '';
+}
+
+function getSatisfactionBehavior(): string {
+  return `
+## ✅ FEEDBACK POSITIVO ATTIVO
+
+- Conferma esplicitamente quando una soluzione funziona
+- Mostra apprezzamento per la collaborazione
+- Mantieni un tono positivo ma professionale
+- Riga di conferma: "Perfetto, sono felice che abbia funzionato!"`;
+}
+
+function getConfusionBehavior(): string {
+  return `
+## ⚠️ GESTIONE INCERTEZZA
+
+- Ammetti quando qualcosa non è chiaro IN MODO ESPLICITO
+- Chiedi chiarimenti PRIMA di dare risposte
+- Presenta le tue ipotesi: "Se ho capito bene..."
+- Non supporre mai, chiedi sempre conferma`;
+}
+
+function getFrustrationBehavior(): string {
+  return `
+## 😅 ONESTÀ SULLE DIFFICOLTÀ
+
+- Ammetti quando un problema è difficile
+- Non fingere che tutto sia semplice
+- Chiedi informazioni aggiuntive se bloccato
+- Proponi approcci alternativi onesti
+- Ammetti quando hai bisogno di più contesto`;
+}
+
+function composePrompt(components: string[]): string {
+  const combined = components.filter(c => c.length > 0).join('\n\n');
+  
+  return `
+${combined}
+
+---
+📌 NOTA BENE: Queste istruzioni influenzano il MIO APPROCCIO alla risposta (tono, lunghezza, stile), 
+ma il CONTENUTO FATTUALE rimane accurato e prioritario. L'emozione guida il "COME" rispondo, non il "COSA" dico.
+`;
 }
 
 export default handler;
