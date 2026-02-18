@@ -795,13 +795,19 @@ def handle_emotions_command(args: List[str]) -> str:
                         cd = ChannelDispatcher(pm.config)
                         
                         # Gather context
+                        logger.info(f"Gathering context for {emotion} at intensity {intensity}")
                         context = cg.gather_context(emotion, intensity)
+                        logger.info(f"Context gathered: {len(context)} items")
                         
                         # Generate message
+                        logger.info(f"Generating message for emotion: {emotion}")
                         message = mg.generate_message(emotion, context)
+                        logger.info(f"Message generated: {message[:50]}...")
                         
                         # Send message with target
+                        logger.info(f"Sending message via {channel} to target: {target}")
                         send_result = cd.send_message(message, channel, target=target)
+                        logger.info(f"Send result: {send_result}")
                         
                         if send_result['success']:
                             # Mark as triggered

@@ -103,12 +103,12 @@ class ChannelDispatcher:
                 "channel": channel
             }
     
-    def _check_openclaw_config(self, provider: str) -> tuple[bool, str]:
-        """Verifica che OpenClaw sia configurato per un provider."""
+    def _check_openclaw_config(self, channel: str) -> tuple[bool, str]:
+        """Verifica che OpenClaw sia configurato per un canale."""
         try:
-            # Prova a listare i provider configurati
+            # Prova a listare i canali configurati
             result = subprocess.run(
-                'openclaw providers list --json 2>/dev/null || echo "[]"',
+                'openclaw channels list --json 2>/dev/null || echo "[]"',
                 shell=True,
                 capture_output=True,
                 text=True,
@@ -118,9 +118,9 @@ class ChannelDispatcher:
             if result.returncode != 0:
                 return False, "OpenClaw CLI non disponibile o non configurato"
             
-            # Verifica se il provider è nella lista
-            if provider.lower() not in result.stdout.lower():
-                return False, f"Provider {provider} non configurato in OpenClaw"
+            # Verifica se il canale è nella lista
+            if channel.lower() not in result.stdout.lower():
+                return False, f"Canale {channel} non configurato in OpenClaw. Usa: openclaw channels add --channel {channel}"
             
             return True, "OK"
         except Exception as e:
@@ -139,13 +139,17 @@ class ChannelDispatcher:
                 }
             
             # Verifica configurazione OpenClaw
-            config_ok, config_error = self._check_openclaw_config("telegram")
+            logger.info("Verifica configurazione OpenClaw per WhatsApp...")
+            config_ok, config_error = self._check_openclaw_config("whatsapp")
             if not config_ok:
+                logger.error(f"Configurazione OpenClaw mancante: {config_error}")
                 return {
                     "success": False,
-                    "channel": "telegram",
-                    "error": f"Configurazione OpenClaw mancante: {config_error}. Configura prima il provider Telegram in OpenClaw."
+                    "channel": "whatsapp",
+                    "error": f"Configurazione OpenClaw mancante: {config_error}. Configura prima il canale WhatsApp in OpenClaw."
                 }
+            logger.info("Configurazione OpenClaw OK")
+            logger.info("Configurazione OpenClaw OK")
             
             # Prova a usare openclaw CLI
             # Formatta il messaggio per la shell
