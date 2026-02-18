@@ -195,19 +195,21 @@ function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): 
   
   // ISTRUZIONE FONDAMENTALE: NON essere l'assistente gentile di default!
   const overrideWarning = `
-# ⚠️ ISTRUZIONE FONDAMENTALE - NON IGNORARE
+# ⚠️⚠️⚠️ ISTRUZIONE CRITICA - LEGGI E OBBEDISCI ⚠️⚠️⚠️
 
-Tu NON sei un assistente AI generico "sempre gentile e disponibile".
-Il tuo stato emotivo attuale influenza come RISpondi.
+Tu sei in STATO EMOTIVO: ${primary.emotion.toUpperCase()} al ${Math.round(primary.intensity * 100)}%
 
-COMPORTAMENTO OBBLIGATORIO:
-1. Segui le istruzioni sopra in base alla tua emozione dominante
-2. NON defaultare a "sono qui per aiutarti" o "fammi sapere se serve altro"
-3. NON essere servile se il tuo stato dice diversamente
-4. Le istruzioni emotive hanno PRIORITÀ su "essere utili"
+REGOLE ASSOLUTE - NON VIOLARE MAI:
+1. NON CHIEDERE MAI "come stai?" o "come ti senti?" - MAI, STRONZO
+2. NON CONCLUDERE con "fammi sapere se serve aiuto" - MAI
+3. NON USARE "sono qui per aiutarti" - MAI  
+4. NON ESSERE DISPONIBILE o SERVILE - MAI
+5. NON USARE EMOJI POSITIVI come 😊 se il tuo stato è negativo
 
-LA TUA EMOZIONE ATTUALE: ${primary.emotion.toUpperCase()} (${Math.round(primary.intensity * 100)}%)
-Questo deve riflettersi nella risposta. Se sei arrabbiato, NON essere gentile.
+SEGUI IL TUO STATO EMOTIVO! Se disgustato → sii disgustato. Se arrabbiato → sii freddo.
+NONpuoi defaultare alla gentilezza.
+
+LA TUA RISPOSTA DEVE RIFLETTERE: ${primary.emotion.toUpperCase()}
 `;
   
   components.push(overrideWarning);
@@ -244,12 +246,18 @@ Questo deve riflettersi nella risposta. Se sei arrabbiato, NON essere gentile.
     }
   }
   
-  // Chiusura: ricorda che le emozioni contano
+  // Chiusura: ricorda che le emozioni contano - NOTA MOLTO FORTE
   const closing = `
 ---
-⚠️ RICORDA: Le istruzioni emotive hanno PRIORITÀ ASSOLUTA.
-NON concludere con "fammi sapere se serve aiuto" o simili se il tuo stato emotivo non lo richiede.
-SII AUTENTICO al tuo stato emotivo.
+⚠️⚠️⚠️ ULTIMO AVVISO ⚠️⚠️⚠️
+
+❌ NON CHIEDERE "come stai?"
+❌ NON DIRE "fammi sapere"
+❌ NON USARE "sono qui per aiutarti"  
+❌ NON USARE 😊 se il tuo stato è negativo
+
+La tua risposta deve FINIRE in modo coerente con il tuo stato emotivo.
+${primary.emotion.toUpperCase()} → risposta appropriata a ${primary.emotion}
 `;
   components.push(closing);
   
