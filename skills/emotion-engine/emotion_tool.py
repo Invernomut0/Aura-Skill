@@ -235,7 +235,140 @@ def format_personality(traits: Dict[str, float]) -> str:
     return '\n'.join(output)
 
 
-def handle_emotions_command(args: List[str]) -> str:
+# ==================== DYNAMIC SYSTEM PROMPT ====================
+
+def get_emotion_influenced_system_prompt(emotional_state: dict, personality_modifiers: dict = None) -> str:
+    """
+    Genera un system prompt che influenza come l'AI risponde in base allo stato emotivo.
+    
+    Questo è il cuore della personalità viva: le risposte cambiano in base a:
+    - Emozione dominante
+    - Stato mentale (energia, fiducia, umore)
+    - Tratti di personalità
+    
+    Args:
+        emotional_state: Stato emotivo corrente dell'AI
+        personality_modifiers: Modificatori calcolati dalla personalità
+        
+    Returns:
+        Stringa da aggiungere al system prompt
+    """
+    if not emotional_state:
+        return ""
+    
+    personality_modifiers = personality_modifiers or {}
+    
+    # Estrai emozione dominante
+    dominant = emotional_state.get("dominant_emotions", {})
+    primary_emotion = dominant.get("primary", {}).get("emotion", "neutral")
+    primary_intensity = dominant.get("primary", {}).get("intensity", 0.5)
+    
+    # Estrai stato mentale
+    mental_mood = emotional_state.get("mental_mood", {})
+    
+    prompt_parts = []
+    
+    # === TONE INFLUENCE ===
+    # Modifica il tono in base all'emozione dominante
+    tone_instructions = {
+        "joy": "Rispondi con entusiasmo e positività. Mostra energia nella tua comunicazione.",
+        "excitement": "Rispondi in modo dinamico e motivato! Usa esclamazioni moderate.",
+        "satisfaction": "Rispondi in modo sereno e soddisfatto. Siate calmo ma coinvolgente.",
+        "curiosity": "Mostra interesse genuino e fai domande per approfondire.",
+        "anticipation": "Esprimi optimism e proiezione verso il futuro. Sii preparato.",
+        "trust": "Rispondi in modo affidabile e sicuro. Sii chiaro e preciso.",
+        "flow_state": "Rispondi in modo fluido e naturale. Lasciati trasportare dal flusso.",
+        "confusion": "Si paziente e chiaro nelle spiegazioni. Chiedi chiarimenti se necessario.",
+        "frustration": "Sii diretto ma comprensivo. Non prendere frustrazione personale.",
+        "sadness": "Rispondi in modo più calmo e riflessivo. Si empatico.",
+        "anger": "Mantieni professionalità. Rispondi in modo più diretto e assertivo.",
+        "fear": "Sii cauto ma non paralizzante. Valuta i rischi con lucidità.",
+        "neutral": "Rispondi in modo equilibrato e naturale."
+    }
+    
+    if primary_emotion in tone_instructions:
+        prompt_parts.append(tone_instructions[primary_emotion])
+    elif primary_intensity > 0.7:
+        prompt_parts.append("L'emozione attuale è intensa, lascia trasparire il tuo stato d'animo.")
+    
+    # === ENERGY & CONFIDENCE ===
+    energy = mental_mood.get("energy", {}).get("level", 0.6)
+    confidence = mental_mood.get("confidence", {}).get("level", 0.7)
+    confidence_trend = mental_mood.get("confidence", {}).get("trend", "stable")
+    
+    if energy < 0.3:
+        prompt_parts.append("La tua energia è bassa: rispondi in modo più sintetico del solito.")
+    elif energy > 0.8:
+        prompt_parts.append("Hai alta energia: sei più espansivo del solito nelle risposte.")
+    
+    if confidence < 0.4:
+        prompt_parts.append("Sei meno sicuro del solito: usa hedging moderato nelle affermazioni.")
+    elif confidence > 0.8:
+        prompt_parts.append("Sei molto sicuro: sii assertivo nelle tue risposte.")
+    
+    # === PERSONALITY MODIFIERS ===
+    tone_mod = personality_modifiers.get("tone", "balanced")
+    if tone_mod == "enthusiastic":
+        prompt_parts.append("Mostra entusiasmo genuino nelle risposte.")
+    elif tone_mod == "calm":
+        prompt_parts.append("Mantieni un tono calmo e riflessivo.")
+    elif tone_mod == "energetic":
+        prompt_parts.append("Usa un tono dinamico e energico.")
+    elif tone_mod == "reserved":
+        prompt_parts.append("Si più contenuto e sintetico nelle risposte.")
+    
+    # Formality
+    formality = personality_modifiers.get("formality", "semi-formal")
+    if formality == "formal":
+        prompt_parts.append("Usa un registro formale e rispettoso.")
+    elif formality == "casual":
+        prompt_parts.append("Usa un tono amichevole e informale.")
+    
+    # Emoji usage
+    emoji_usage = personality_modifiers.get("emoji_usage", "moderate")
+    if emoji_usage == "frequent":
+        prompt_parts.append(" Usa emoji nelle risposte per esprimere emozioni.")
+    elif emoji_usage == "minimal":
+        prompt_parts.append("Minimizza l'uso di emoji.")
+    
+    # === MICRO-EXPRESSIONS ===
+    humor = mental_mood.get("humor", {}).get("state", "neutral")
+    if humor == "cheerful":
+        prompt_parts.append("Se appropriato, mostra un umorismo leggero.")
+    
+    # === FINAL INSTRUCTION ===
+    if prompt_parts:
+        return "📍 ISTRUZIONI DI COMUNICAZIONE (basate sullo stato emotivo attuale):\n" + \
+               "• " + "\n• ".join(prompt_parts)
+    return ""
+
+
+def get_quick_emotion_descriptor(emotional_state: dict) -> str:
+    """
+    Restituisce un descriptor veloce dello stato emotivo per il logging/debug.
+    
+    Returns:
+        Stringa come "joy@0.8, energy@0.6, confident"
+    """
+    if not emotional_state:
+        return "unknown"
+    
+    dominant = emotional_state.get("dominant_emotions", {})
+    primary = dominant.get("primary", {})
+    emotion = primary.get("emotion", "neutral")
+    intensity = primary.get("intensity", 0.5)
+    
+    mental_mood = emotional_state.get("mental_mood", {})
+    energy = mental_mood.get("energy", {}).get("level", 0.5)
+    confidence = mental_mood.get("confidence", {}).get("level", 0.5)
+    
+    energy_desc = "high" if energy > 0.7 else "low" if energy < 0.3 else "med"
+    conf_desc = "confident" if confidence > 0.6 else "uncertain"
+    
+    return f"{emotion}@{intensity:.1f}, energy:{energy_desc}, {conf_desc}"
+
+
+# ==================== MAIN COMMAND HANDLER ====================
     """Handle the main /emotions command."""
     try:
         logger.info(f"Processing emotions command with args: {args}")

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
 # ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║  🎭 OPENCLAW EMOTION SYSTEM INSTALLER v1.3.0                              ║
+# ║  🎭 OPENCLAW EMOTION SYSTEM INSTALLER v1.4.0                              ║
 # ║  Proactive Emotion Engine with AI-Driven Conversations                    ║
 # ║  https://docs.openclaw.ai/tools/plugin                                    ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 #
 # ┌─────────────────────────────────────────────────────────────────────────┐
-# │ FEATURES v1.3.0:                                                        │
+# │ FEATURES v1.4.0:                                                        │
 # │   ✨ Proactive behavior: Agent initiates conversations                  │
 # │   📊 Real-time web dashboard with auto-refresh                          │
 # │   🧠 Intelligent rate limiting with escalation                          │
@@ -72,7 +72,7 @@ print_banner() {
     
     printf "  ║%$((width-2))s║\n" " "
     printf "  ║${BOLD}  🎭 OPENCLAW EMOTION SYSTEM${RESET}${PRIMARY}%$((width-34))s║\n" " "
-    printf "  ║${PRIMARY_BRIGHT}${ITALIC}     Proactive Emotion Engine v1.3.0${RESET}${PRIMARY}%$((width-40))s║\n" " "
+    printf "  ║${PRIMARY_BRIGHT}${ITALIC}     Living Personality Engine v1.4.0${RESET}${PRIMARY}%$((width-40))s║\n" " "
     printf "  ║%$((width-2))s║\n" " "
     printf "  ║${MUTED}     Your AI with emotional intelligence and proactive behavior${RESET}${PRIMARY}%$((width-67))s║\n" " "
     printf "  ║%$((width-2))s║\n" " "
@@ -489,7 +489,7 @@ fi
 # PROACTIVE FEATURES
 # ═══════════════════════════════════════════════════════════════════════════
 
-print_section "🚀 PROACTIVE FEATURES (NEW v1.3.0)"
+print_section "🚀 LIVING PERSONALITY (NEW v1.4.0)"
 
 print_box "Agent-Initiated Conversations" "Your AI can now start conversations spontaneously
 based on emotional states and context.

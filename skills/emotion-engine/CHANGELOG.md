@@ -5,6 +5,47 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-02-18
+
+### Added
+- **Sistema di Personalità Vivente**: L'AI ha ora umori persistenti che influenzano le risposte
+  - **Mental Mood**: humor, energy, confidence, formality, verbosity, patience
+  - **Mood Streaks**: Tiene traccia degli umori consecutivi
+  - **Adaptive Energy**: L'energia varia in base alle interazioni recenti
+- **Dynamic System Prompt**: Le risposte dell'AI cambiano in base allo stato emotivo
+  - Joy → risposte entusiastiche
+  - Confusion → risposte chiare e pazienti
+  - Bassa energia → risposte più sintetiche
+  - Alta fiducia → risposte assertive
+- **User Reaction History**: L'AI impara dalle reazioni dell'utente
+  - Traccia come l'utente ha risposto ai messaggi proattivi
+  - Calcola ratio positivo/negativo
+  - Adatta la strategia (cautious, expansive, detailed, concise)
+- **Micro-Experiences**: Commenti contestuali basati sulla memoria
+  - "È la terza interazione oggi!"
+  - "Le nostre conversazioni sono sempre positive!"
+  - "Spero che l'ultima spiegazione fosse più chiara"
+- **Message Generator Potenziato**: I messaggi proattivi ora usano la personalità
+  - Stili: enthusiastic, calm, energetic, reserved, cheerful, serious
+  - Saluti personalizzati per ogni stile
+  - Chiusure diverse per ogni tono
+  - Uso emoji adattivo
+
+### Changed
+- `message_generator.py` completamente rivisto per supportare personalità dinamica
+- `emotion_ml_engine.py` ora include metodi per calcolare modificatori di prompt
+- `emotion_tool.py` include `get_emotion_influenced_system_prompt()` per prompt dinamici
+- `context_gatherer.py` ora raccoglie user reaction history
+- Migliorata gestione errori nel channel dispatcher
+- Corretto comando: `--text` → `--message` per OpenClaw message send
+- Corretto comando: `--provider` → `--channel` per OpenClaw
+
+### Fixed
+- Corretto `--provider` non riconosciuto → `--channel`
+- Corretto `--text` non riconosciuto → `--message`
+- Aggiunto controllo configurazione canali con `openclaw channels list`
+-INSTALL.sh ora aggiunge campi mancanti alla configurazione
+
 ## [1.3.0] - 2026-02-18
 
 ### Added
@@ -78,6 +119,6 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ---
 
-**Milestone Corrente**: v1.3.0 - Proactive Emotion Engine
+**Milestone Corrente**: v1.4.0 - Living Personality Engine
 **Stato**: In sviluppo
-**Prossima Milestone**: v1.4.0 - Multi-User Support & Therapy Mode
+**Prossima Milestone**: v1.5.0 - Advanced Memory & Learning

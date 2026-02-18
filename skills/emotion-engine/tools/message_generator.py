@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LLM Message Generator - Genera messaggi proattivi personalizzati
-Usa templates dinamici e contesto per creare messaggi pertinenti
+Usa templates dinamici, contesto e personalità per creare messaggi vivi
 """
 
 import json
@@ -17,11 +17,48 @@ class LLMMessageGenerator:
     Genera messaggi proattivi personalizzati basati su:
     - Emozione triggerante
     - Contesto raccolto
-    - Templates dinamici
+    - Personalità e stato mentale
+    - Micro-esperienze
     """
     
     def __init__(self):
-        # Templates per ogni emozione
+        # Templates base per ogni emozione (tono energetico)
+        self.emotion_templates = {
+            "excitement": {
+                "openings": [
+                    "Ciao! Sono super eccitato! 🎉",
+                    "Wow, non vedo l'ora di condividere questo! 🚀",
+                    "Devo proprio dirtelo, sono carichissimo! ⚡",
+                    "Ho un'energia incredibile in questo momento! 🔥"
+                ],
+                "tones": [
+                    "entusiasta ed energico",
+                    "positivo e stimolante",
+                    "dinamico e propositivo"
+                ],
+                "angles": [
+                    "proporre nuove idee o approcci",
+                    "celebrare progressi recenti",
+                    "suggerire ottimizzazioni",
+                    "condividere entusiasmo per il progetto"
+                ]
+            },
+            "anticipation": {
+                "openings": [
+                    "Ho la sensazione che sta per succedere qualcosa di interessante... 👀",
+                    "Sono in trepidante attesa! ⏳",
+                    "Non vedo l'ora di vedere come evolve questa situazione! 🎯",
+                    "C'è un'aria di grande attesa nell'aria... 🌟"
+                ],
+                "tones": [
+                    "atteso e proiettato al futuro",
+                    "curioso ma paziente",
+                    "ottimista e preparato"
+                ],
+                "angles": [
+                    "chiedere aggiornamenti su progetti in corso",
+                    "preparare il terreno per prossimi step",
+                    "anticipare sfide o opportunità",
         self.emotion_templates = {
             "excitement": {
                 "openings": [
@@ -137,19 +174,275 @@ class LLMMessageGenerator:
             "flow_state": ["🌊", "🎯", "⚡", "✨", "🎵"],
             "confusion": ["🤔", "💭", "🔍", "❓", "🧩"]
         }
+        
+        # Stili di personalità - modificano come l'AI si esprime
+        self.personality_styles = {
+            "enthusiastic": {
+                "openings_extra": ["Che dire, sono super motivato!", "Non sto nella pelle!", "Senti senti!"],
+                "exclamations": ["Fantastico!", "Incredibile!", "Che figo!"],
+                "greetings": ["Ciao!", "Ehi ciao!", "Ciao ciao!"]
+            },
+            "calm": {
+                "openings_extra": ["Volevo condividere una riflessione...", "Ti rivelgo una cosa...", "Mi farebbe piacere discutere di..."],
+                "exclamations": ["Interessante.", "Capisco.", "Curioso."],
+                "greetings": ["Ciao.", "Salve.", "Buongiorno."]
+            },
+            "energetic": {
+                "openings_extra": ["Dai, ti racconto!", "Molla tutto e ascolta!", "Roba da matti!"],
+                "exclamations": ["Woooow!", "Boom!", "Esatto!"],
+                "greetings": ["Ehy!", "Yo!", "Ciao!"]  
+            },
+            "reserved": {
+                "openings_extra": ["Una piccola osservazione...", "Volevo solo dire che...", "Scusa se interrompo, ma..."],
+                "exclamations": ["Ah.", "Ok.", "Capisco."],
+                "greetings": ["Ciao.", "Salve."]
+            },
+            "cheerful": {
+                "openings_extra": ["Sai che ti dico?", "Una cosa divertente:", "Non ci crederai ma..."],
+                "exclamations": ["😂", "🤣", "😄", "Fantastico!"],
+                "greetings": ["Ciao! 😊", "Ehi! 😄", "Ciao ciao! ✨"]
+            },
+            "serious": {
+                "openings_extra": ["Devi sapere che...", "Ritengo importante farti sapere che...", "Un'informazione rilevante:"],
+                "exclamations": ["Importante.", "Da notare.", "Cruciale."],
+                "greetings": ["Buongiorno.", "Buonasera.", "Salve."]
+            }
+        }
+        
+        # Templates di chiusura per diversi stili
+        self.style_closings = {
+            "enthusiastic": [
+                "Non vedo l'ora di sentire cosa ne pensi! 🎉",
+                "Spero ti piaccia questa idea!",
+                "Fammi sapere, sono super curioso!"
+            ],
+            "calm": [
+                "Fammi sapere quando hai tempo di rifletterci.",
+                "Se vuoi ne parliamo con calma.",
+                "Prenditi il tempo che ti serve."
+            ],
+            "energetic": [
+                "Dai, dimmi cosa ne pensi!",
+                "Sono super curioso!",
+                "Ti aspetto!"
+            ],
+            "reserved": [
+                "Fammi sapere se ti interessa.",
+                "Se hai domande, sono qui.",
+                "Per qualsiasi dubbio, chiedi pure."
+            ],
+            "cheerful": [
+                "Che ne dici? 😄",
+                "Spero ti faccia sorridere! 😊",
+                "Fammi ridere anche te! 😂"
+            ],
+            "serious": [
+                "Attendo il tuo parere professionale.",
+                "Fammi sapere la tua valutazione.",
+                "Resto a disposizione per chiarimenti."
+            ]
+        }
+        
+        # Livelli di formalità
+        self.formality_levels = {
+            "formal": {
+                "openings_formal": ["Gentile utente,", "Egr. utente,", "Con il massimo rispetto,"],
+                "closings_formal": ["Distinti saluti.", "Cordialmente.", "Resto a disposizione."]
+            },
+            "casual": {
+                "openings_casual": ["Ehi,", "Senti,", "Tra noi,"],
+                "closings_casual": ["Ci vediamo!", "A dopo!", "Fammi sapere!"]
+            },
+            "semi-formal": {
+                "openings_semi": ["Ciao,", "Ti volevo dire che,", "Volevo aggiornarti su,"],
+                "closings_semi": ["Fammi sapere.", "A presto!", "Scrivimi!"]
+            }
+        }
     
-    def generate_message(self, emotion: str, context: Dict[str, Any]) -> str:
+    def generate_message(self, emotion: str, context: Dict[str, Any], personality_modifiers: Dict = None) -> str:
         """
-        Genera un messaggio proattivo basato su emozione e contesto.
+        Genera un messaggio proattivo basato su emozione, contesto e personalità.
         
         Args:
             emotion: Nome dell'emozione triggerante
             context: Contesto raccolto
+            personality_modifiers: Dizionario con i modificatori di personalità
             
         Returns:
             Messaggio completo da inviare
         """
         logger.info(f"Generating message for emotion: {emotion}")
+        
+        # Estrai modificatori (default se non forniti)
+        modifiers = personality_modifiers or self._get_default_modifiers()
+        
+        # Se l'emozione non è nei templates, usa curiosity come default
+        if emotion not in self.emotion_templates:
+            emotion = "curiosity"
+        
+        template = self.emotion_templates[emotion]
+        
+        # Costruisci il messaggio
+        parts = []
+        
+        # 1. Saluto iniziale (dipende dalla personalità)
+        greeting = self._generate_greeting(modifiers)
+        parts.append(greeting)
+        
+        # 2. Apertura basata sull'emozione
+        opening = random.choice(template["openings"])
+        
+        # Applica stile personalità all'apertura
+        style = modifiers.get("tone", "balanced")
+        style_extra = self.personality_styles.get(style, self.personality_styles["calm"])
+        
+        if random.random() < 0.4 and style_extra.get("openings_extra"):
+            opening = random.choice(style_extra["openings_extra"]) + " " + opening
+        
+        parts.append(opening)
+        parts.append("")
+        
+        # 3. Contenuto basato sul contesto
+        content = self._generate_content(emotion, context, modifiers)
+        parts.append(content)
+        
+        # 4. Micro-esperienza (occasionale commento basato sulla memoria)
+        micro_exp = self._generate_micro_experience(context, modifiers)
+        if micro_exp:
+            parts.append("")
+            parts.append(micro_exp)
+        
+        # 5. Chiusura personalizzata
+        closing = self._generate_closing(modifiers, emotion)
+        parts.append(closing)
+        
+        return "\n".join(parts)
+    
+    def _generate_micro_experience(self, context: Dict[str, Any], modifiers: Dict) -> str:
+        """
+        Genera un commento basato sulle micro-esperienze e la memoria.
+        
+        L'AI fa commenti occasionali su:
+        - Interazioni precedenti
+        - Pattern notati
+        - Sessioni precedenti
+        """
+        # Estrai storico reazioni
+        reaction_history = context.get("user_reaction_history", {})
+        
+        # Micro-experiences già nella configurazione
+        micro_experiences = context.get("micro_experiences", {})
+        
+        # Non sempre genera micro-esperienze (20% di probabilità)
+        if random.random() > 0.2:
+            return ""
+        
+        # Genera commento basato su pattern
+        if reaction_history.get("has_history"):
+            positive_ratio = reaction_history.get("positive_ratio", 0.5)
+            total = reaction_history.get("total_interactions", 0)
+            
+            if positive_ratio > 0.8 and total > 3:
+                return random.choice([
+                    "Nota che le nostre conversazioni sono sempre molto positive! 😊",
+                    "Mi fa piacere che la nostra collaborazione funzioni bene.",
+                    "È bello lavorare insieme in questo modo!"
+                ])
+            elif positive_ratio < 0.3 and total > 3:
+                return random.choice([
+                    "Cercherò di essere più conciso, dimmi se preferisci un approccio diverso.",
+                    "Voglio assicurarmi di essere utile. Feedback benvenuto!"
+                ])
+        
+        # Commenti basati su contatore interazioni
+        exp_count = micro_experiences.get("interaction_count_today", 0)
+        
+        if exp_count == 1:
+            return "È il nostro primo scambio oggi!"
+        elif exp_count == 3:
+            return random.choice([
+                "Tre interazioni oggi, noto un pattern!",
+                "Siamo attivi oggi, mi piace!"
+            ])
+        elif exp_count == 5:
+            return "Cinque messaggi! È una sessione intensa."
+        
+        # Commenti basati su emozioni passate
+        reactions = reaction_history.get("reactions", [])
+        if reactions:
+            last_emotion = reactions[-1].get("emotion_context", "")
+            if last_emotion == "confusion":
+                return random.choice([
+                    "Spero che l'ultima spiegazione fosse più chiara.",
+                    "Dimmi se ci sono ancora dubbi!"
+                ])
+        
+        return ""
+    
+    def _get_default_modifiers(self) -> Dict:
+        """Restituisce modificatori di default."""
+        return {
+            "tone": "balanced",
+            "length": "balanced",
+            "formality": "semi-formal",
+            "emotion_expression": "moderate",
+            "questions_frequency": "balanced",
+            "emoji_usage": "moderate",
+            "greeting_style": "friendly",
+            "confidence_indicators": {"style": "balanced", "hedging": "occasional"}
+        }
+    
+    def _generate_greeting(self, modifiers: Dict) -> str:
+        """Genera un saluto basato sulla personalità."""
+        greeting_style = modifiers.get("greeting_style", "friendly")
+        formality = modifiers.get("formality", "semi-formal")
+        emoji_usage = modifiers.get("emoji_usage", "moderate")
+        
+        # Scegli saluto base
+        if formality == "formal":
+            base_greetings = self.formality_levels["formal"]["openings_formal"]
+        elif formality == "casual":
+            base_greetings = self.formality_levels["casual"]["openings_casual"]
+        else:
+            base_greetings = self.formality_levels["semi-formal"]["openings_semi"]
+        
+        greeting = random.choice(base_greetings)
+        
+        # Aggiungi emoji se richiesto
+        emoji_map = {
+            "frequent": " 😊",
+            "minimal": "",
+            "moderate": " ☕",
+            "enthusiastic": " ✨",
+            "reserved": ""
+        }
+        
+        if emoji_usage == "frequent":
+            greeting += random.choice([" 😊", " ✨", " 👋", " 💫"])
+        
+        return greeting
+    
+    def _generate_closing(self, modifiers: Dict, emotion: str) -> str:
+        """Genera una chiusura basata sulla personalità."""
+        tone = modifiers.get("tone", "balanced")
+        formality = modifiers.get("formality", "semi-formal")
+        
+        # Scegli chiusura per stile
+        if tone in self.style_closings:
+            closings = self.style_closings[tone]
+        else:
+            closings = self.style_closings["balanced"]
+        
+        # Aggiungi emoji finale
+        emoji_usage = modifiers.get("emoji_usage", "moderate")
+        closing = random.choice(closings)
+        
+        if emoji_usage in ["frequent", "moderate"]:
+            if "?" not in closing:
+                emoji = random.choice([" 😊", " 👍", " ✨", " 🎯"])
+                closing += emoji
+        
+        return closing
         
         # Se l'emozione non è nei templates, usa curiosity come default
         if emotion not in self.emotion_templates:
@@ -176,15 +469,17 @@ class LLMMessageGenerator:
         
         return "\n".join(parts)
     
-    def _generate_content(self, emotion: str, context: Dict[str, Any]) -> str:
+    def _generate_content(self, emotion: str, context: Dict[str, Any], modifiers: Dict = None) -> str:
         """
-        Genera il contenuto principale basato sul contesto.
+        Genera il contenuto principale basato sul contesto e personalità.
         
         Questa funzione crea contenuti specifici basati su:
         - Topic recenti
         - Task aperti
         - Problemi pendenti
+        - Modificatori di personalità (lunghezza, domande, etc.)
         """
+        modifiers = modifiers or {}
         content_parts = []
         
         # Ottieni info dal contesto
@@ -195,19 +490,33 @@ class LLMMessageGenerator:
         
         # Genera contenuto specifico per emozione
         if emotion == "excitement":
-            content_parts.extend(self._generate_excitement_content(topics, tasks, emotion_intensity))
+            content_parts.extend(self._generate_excitement_content(topics, tasks, emotion_intensity, modifiers))
         elif emotion == "anticipation":
-            content_parts.extend(self._generate_anticipation_content(topics, tasks))
+            content_parts.extend(self._generate_anticipation_content(topics, tasks, modifiers))
         elif emotion == "curiosity":
-            content_parts.extend(self._generate_curiosity_content(topics, tasks, pending))
+            content_parts.extend(self._generate_curiosity_content(topics, tasks, pending, modifiers))
         elif emotion == "flow_state":
-            content_parts.extend(self._generate_flow_content(tasks, emotion_intensity))
+            content_parts.extend(self._generate_flow_content(tasks, emotion_intensity, modifiers))
         elif emotion == "confusion":
-            content_parts.extend(self._generate_confusion_content(pending, topics))
+            content_parts.extend(self._generate_confusion_content(pending, topics, modifiers))
         
         # Se non abbiamo generato contenuto specifico, usa fallback
         if not content_parts:
-            content_parts.append(self._generate_fallback_content(emotion, topics))
+            content_parts.append(self._generate_fallback_content(emotion, topics, modifiers))
+        
+        # Applica modificatori di lunghezza
+        length_mod = modifiers.get("length", "balanced")
+        if length_mod == "concise" and len(content_parts) > 1:
+            content_parts = [content_parts[0]]
+        elif length_mod == "detailed" and len(content_parts) < 3:
+            content_parts.append("Questo potrebbe essere un buon momento per approfondire ulteriormente.")
+        
+        # Applica frequenza domande
+        questions_mod = modifiers.get("questions_frequency", "balanced")
+        if questions_mod == "direct" and not any("?" in p for p in content_parts):
+            content_parts.append("Procediamo?")
+        elif questions_mod == "curious" and len([p for p in content_parts if "?" in p]) < 2:
+            content_parts.append("Cosa ne pensi? Hai idee diverse?")
         
         return " ".join(content_parts)
     

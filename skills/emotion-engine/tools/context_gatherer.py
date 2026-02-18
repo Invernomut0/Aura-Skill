@@ -58,7 +58,8 @@ class ContextGatherer:
             "task_context": self._gather_task_context(),
             "memory_context": self._gather_memory_context(),
             "recent_topics": self._identify_recent_topics(),
-            "pending_items": self._identify_pending_items()
+            "pending_items": self._identify_pending_items(),
+            "user_reaction_history": self._gather_user_reaction_history()
         }
         
         logger.debug(f"Context gathered: {len(context)} sections")
@@ -250,6 +251,97 @@ class ContextGatherer:
         except Exception as e:
             logger.warning(f"Failed to identify pending items: {e}")
             return []
+    
+    def _gather_user_reaction_history(self) -> Dict[str, Any]:
+        """
+        Raccoglie lo storico delle reazioni dell'utente ai messaggi proattivi.
+        
+        Questo permette all'AI di adattare le risposte in base a come l'utente
+        ha reagito in passato.
+        """
+        try:
+            if os.path.exists(self.memory_file):
+                with open(self.memory_file, 'r') as f:
+                    state = json.load(f)
+                
+                emotional_memory = state.get("emotional_memory", {})
+                reaction_history = emotional_memory.get("user_reaction_history", [])
+                
+                if not reaction_history:
+                    return {"has_history": False, "reactions": []}
+                
+                # Analizza pattern di reazioni
+                positive_count = 0
+                negative_count = 0
+                neutral_count = 0
+                
+                for reaction in reaction_history:
+                    text = reaction.get("user_text", "").lower()
+                    response_len = reaction.get("response_length", 0)
+                    
+                    # Stima reazione dalla lunghezza e contenuto
+                    positive_keywords = ["grazie", "thanks", "perfetto", "great", "awesome", "👍", "😊", "❤️"]
+                    negative_keywords = ["basta", "stop", "no grazie", "no thanks", "smetti", "leave me", "🙄", "😤"]
+                    
+                    is_positive = any(kw in text for kw in positive_keywords)
+                    is_negative = any(kw in text for kw in negative_keywords)
+                    
+                    if is_positive:
+                        positive_count += 1
+                    elif is_negative:
+                        negative_count += 1
+                    else:
+                        neutral_count += 1
+                
+                total = len(reaction_history)
+                
+                return {
+                    "has_history": True,
+                    "total_interactions": total,
+                    "positive_ratio": positive_count / total if total > 0 else 0,
+                    "negative_ratio": negative_count / total if total > 0 else 0,
+                    "avg_response_length": sum(r.get("response_length", 0) for r in reaction_history) / total if total > 0 else 0,
+                    "last_emotion_context": reaction_history[-1].get("emotion_context", "unknown") if reaction_history else None,
+                    "reactions": reaction_history[-5:]  # Ultime 5 reazioni
+                }
+            
+            return {"has_history": False, "reactions": []}
+        
+        except Exception as e:
+            logger.warning(f"Failed to gather user reaction history: {e}")
+            return {"has_history": False, "reactions": [], "error": str(e)}
+    
+    def get_adaptive_strategy(self, user_reaction_history: Dict[str, Any]) -> str:
+        """
+        Calcola una strategia adattiva basata sulle reazioni passate dell'utente.
+        
+        Returns:
+            Stringa che descrive la strategia da usare
+        """
+        if not user_reaction_history.get("has_history", False):
+            return "standard"
+        
+        positive_ratio = user_reaction_history.get("positive_ratio", 0.5)
+        negative_ratio = user_reaction_history.get("negative_ratio", 0.0)
+        avg_length = user_reaction_history.get("avg_response_length", 0)
+        
+        # Se l'utente è spesso negativo, sii più cauto
+        if negative_ratio > 0.4:
+            return "cautious"
+        
+        # Se l'utente è spesso positivo, sii più espansivo
+        if positive_ratio > 0.7:
+            return "expansive"
+        
+        # Se l'utente scrive molto, sii più dettagliato
+        if avg_length > 50:
+            return "detailed"
+        
+        # Se l'utente scrive poco, sii più sintetico
+        if avg_length < 15:
+            return "concise"
+        
+        return "standard"
     
     def format_context_for_llm(self, context: Dict[str, Any]) -> str:
         """

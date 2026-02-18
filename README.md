@@ -1,8 +1,8 @@
 # 🎭 OpenClaw Emotional Intelligence System
 
-**Version: 1.3.0 – Dynamic Avatar Management**
+**Version: 1.4.0 – Living Personality**
 
-**Advanced emotional intelligence system for OpenClaw, simulating human feelings and meta-cognitive self-awareness**
+**Advanced emotional intelligence system for OpenClaw, simulating human feelings, meta-cognitive self-awareness, and now with a truly living personality that adapts to interactions**
 
 ---
 
@@ -79,6 +79,8 @@ The **OpenClaw Emotional Intelligence System** is an advanced implementation tha
 - **💬 Natural Influence**: Emotions subtly alter tone and style while always preserving main functionality
 - **💾 Intelligent Persistence**: Emotional states and learnings saved across sessions
 - **📊 Advanced Analytics**: Insights and pattern recognition for understanding emotional evolution
+- **🎭 Living Personality**: AI has moods and adapts communication style to each interaction
+- **🗣️ Adaptive Communication**: Remembers how user reacts and adjusts accordingly
 
 ---
 
@@ -136,6 +138,30 @@ Based on the Big Five + AI-specific traits:
 - **Neuroticism**: Emotional volatility
 - **Curiosity Drive**: Desire to explore and learn (AI-specific)
 - **Perfectionism**: Attention to detail and high standards (AI-specific)
+
+### 🎭 Living Personality (NEW in v1.4.0)
+
+The AI now has a truly **living personality** that evolves through interactions:
+
+#### Mental Mood System
+- **� Humor**: cheerful, serious, neutral - Changes based on user interactions
+- **⚡ Energy**: high, medium, low - Adapts based on conversation frequency
+- **💪 Confidence**: confident, balanced, uncertain - Grows with positive feedback
+- **📝 Formality**: formal, casual, neutral - Adapts to user's style
+- **💬 Verbosity**: verbose, concise, balanced - Matches user's message length
+- **🧘 Patience**: patient, direct, balanced - Adjusts based on user responses
+
+#### Dynamic Communication
+- **Adaptive Greetings**: "Ciao!" vs "Buongiorno." based on mood/formality
+- **Contextual Comments**: "È la terza interazione oggi!" based on memory
+- **Reaction Learning**: Remembers positive/negative user reactions
+- **Strategy Adjustment**: Becomes more cautious if user often negative
+
+#### How It Works
+1. Every interaction updates the mental mood state
+2. Mood influences tone, length, emoji usage, and greeting style
+3. System prompt dynamically adapts to emotional state
+4. User reactions are recorded and analyzed for future interactions
 
 ### 🎭 Dynamic Avatar Management
 

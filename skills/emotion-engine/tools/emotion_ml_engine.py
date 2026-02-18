@@ -117,9 +117,26 @@ class EmotionEngine:
                 "learned_patterns": {},
                 "user_preferences": {},
                 "successful_approaches": {},
-                "failed_approaches": {}
+                "failed_approaches": {},
+                "user_reaction_history": []
             },
             "personality_traits": personality_traits,
+            "mental_mood": {
+                "humor": {"state": "neutral", "intensity": 0.5},
+                "verbosity": {"state": "balanced", "intensity": 0.5},
+                "formality": {"state": "neutral", "intensity": 0.5},
+                "confidence": {"level": 0.7, "trend": "stable"},
+                "energy": {"level": 0.6, "trend": "stable"},
+                "patience": {"level": 0.7, "trend": "stable"},
+                "last_mood_change": datetime.now().isoformat(),
+                "mood_streak": {"type": None, "count": 0}
+            },
+            "micro_experiences": {
+                "recent_comments": [],
+                "interaction_count_today": 0,
+                "last_interaction_date": None,
+                "noted_patterns": []
+            },
             "ml_state": {
                 "pattern_recognition_confidence": 0.5,
                 "adaptation_rate": 0.5,
@@ -953,6 +970,325 @@ class EmotionEngine:
         if not self.proactive_manager:
             return {"enabled": False, "error": "Proactive manager not available"}
         return self.proactive_manager.get_status()
+
+    # ==================== MENTAL MOOD SYSTEM ====================
+    
+    def update_mental_mood_from_interaction(self, user_text: str, response_quality: str = "neutral"):
+        """
+        Aggiorna lo stato mentale basato sull'interazione con l'utente.
+        
+        Args:
+            user_text: Testo dell'utente
+            response_quality: Qualità percepita della risposta ('positive', 'negative', 'neutral')
+        """
+        if "mental_mood" not in self.emotional_state:
+            self.emotional_state["mental_mood"] = {
+                "humor": {"state": "neutral", "intensity": 0.5},
+                "verbosity": {"state": "balanced", "intensity": 0.5},
+                "formality": {"state": "neutral", "intensity": 0.5},
+                "confidence": {"level": 0.7, "trend": "stable"},
+                "energy": {"level": 0.6, "trend": "stable"},
+                "patience": {"level": 0.7, "trend": "stable"},
+                "last_mood_change": datetime.now().isoformat(),
+                "mood_streak": {"type": None, "count": 0}
+            }
+        
+        mood = self.emotional_state["mental_mood"]
+        
+        user_lower = user_text.lower()
+        
+        # Humor: basato su sarcasmo, battute, emoji
+        humor_indicators_positive = ["😄", "😂", "🤣", "😆", "haha", "lol", "xd", "xD", " LOL", " haha"]
+        humor_indicators_negative = ["serio", "nessun sorriso", "no joke", "not funny"]
+        
+        if any(indicator in user_lower for indicator in humor_indicators_positive):
+            self._adjust_mood_state("humor", "cheerful", 0.1)
+        elif any(indicator in user_lower for indicator in humor_indicators_negative):
+            self._adjust_mood_state("humor", "serious", -0.1)
+        
+        # Verbosity: lunghezza messaggio utente
+        word_count = len(user_text.split())
+        if word_count > 100:
+            self._adjust_mood_state("verbosity", "verbose", 0.05)
+        elif word_count < 10:
+            self._adjust_mood_state("verbosity", "concise", -0.05)
+        
+        # Formality: basato su linguaggio formale/informale
+        formal_indicators = ["gentile", "prego", "cosa ne pensa", "potrebbe", "La ringrazio"]
+        casual_indicators = ["ciao", "ehi", "cmq", "però", "dai", "vaffan", "merda", "cazzo"]
+        
+        if any(indicator in user_lower for indicator in formal_indicators):
+            self._adjust_mood_state("formality", "formal", 0.1)
+        elif any(indicator in user_lower for indicator in casual_indicators):
+            self._adjust_mood_state("formality", "casual", -0.1)
+        
+        # Confidence: basato su feedback
+        if response_quality == "positive":
+            self._adjust_mood_confidence(0.05)
+        elif response_quality == "negative":
+            self._adjust_mood_confidence(-0.1)
+        
+        # Energy: varia durante la giornata
+        self._update_energy_level()
+        
+        self.emotional_state["mental_mood"]["last_mood_change"] = datetime.now().isoformat()
+    
+    def _adjust_mood_state(self, mood_type: str, new_state: str, intensity_delta: float):
+        """Aggiusta uno stato d'animo specifico."""
+        mood = self.emotional_state["mental_mood"]
+        current = mood.get(mood_type, {"state": "neutral", "intensity": 0.5})
+        
+        current["state"] = new_state
+        current["intensity"] = max(0.1, min(1.0, current["intensity"] + intensity_delta))
+        mood[mood_type] = current
+        
+        # Track mood streak
+        if mood["mood_streak"]["type"] == new_state:
+            mood["mood_streak"]["count"] += 1
+        else:
+            mood["mood_streak"] = {"type": new_state, "count": 1}
+    
+    def _adjust_mood_confidence(self, delta: float):
+        """Aggiusta il livello di fiducia."""
+        mood = self.emotional_state["mental_mood"]
+        confidence = mood.get("confidence", {"level": 0.7, "trend": "stable"})
+        
+        new_level = max(0.3, min(1.0, confidence["level"] + delta))
+        
+        if new_level > confidence["level"]:
+            confidence["trend"] = "increasing"
+        elif new_level < confidence["level"]:
+            confidence["trend"] = "decreasing"
+        else:
+            confidence["trend"] = "stable"
+        
+        confidence["level"] = new_level
+        mood["confidence"] = confidence
+    
+    def _update_energy_level(self):
+        """Aggiorna il livello di energia basandosi sulle interazioni recenti."""
+        mood = self.emotional_state["mental_mood"]
+        
+        recent_count = len(self.interaction_history[-10:]) if self.interaction_history else 0
+        
+        if recent_count > 15:
+            energy_delta = -0.05
+            trend = "decreasing"
+        elif recent_count > 5:
+            energy_delta = 0.02
+            trend = "stable"
+        else:
+            energy_delta = 0.05
+            trend = "increasing"
+        
+        current = mood.get("energy", {"level": 0.6, "trend": "stable"})
+        new_level = max(0.2, min(1.0, current["level"] + energy_delta))
+        mood["energy"] = {"level": new_level, "trend": trend}
+    
+    def get_mental_mood(self) -> dict:
+        """Restituisce lo stato mentale corrente."""
+        return self.emotional_state.get("mental_mood", {})
+    
+    def get_personality_influenced_prompt_modifiers(self) -> dict:
+        """
+        Calcola i modificatori di prompt basati sulla personalità e stato mentale.
+        
+        Returns:
+            Dict con modificatori per il tone, length, e style delle risposte
+        """
+        personality = self.emotional_state.get("personality_traits", {})
+        mood = self.get_mental_mood()
+        
+        modifiers = {
+            "tone": self._get_tone_modifier(personality, mood),
+            "length": self._get_length_modifier(personality, mood),
+            "formality": self._get_formality_modifier(personality, mood),
+            "emotion_expression": self._get_emotion_expression_modifier(personality, mood),
+            "questions_frequency": self._get_questions_modifier(personality, mood),
+            "emoji_usage": self._get_emoji_modifier(personality, mood),
+            "greeting_style": self._get_greeting_modifier(personality, mood),
+            "confidence_indicators": self._get_confidence_modifier(mood)
+        }
+        
+        return modifiers
+    
+    def _get_tone_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola il modificatore di tono."""
+        extraversion = personality.get("extraversion", 0.5)
+        energy = mood.get("energy", {}).get("level", 0.5)
+        humor_state = mood.get("humor", {}).get("state", "neutral")
+        
+        if humor_state == "cheerful" and energy > 0.6:
+            return "enthusiastic"
+        elif extraversion > 0.7:
+            return "energetic"
+        elif extraversion < 0.3:
+            return "calm"
+        else:
+            return "balanced"
+    
+    def _get_length_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola il modificatore di lunghezza."""
+        verbosity = mood.get("verbosity", {}).get("state", "balanced")
+        openness = personality.get("openness", 0.5)
+        
+        if verbosity == "verbose" or openness > 0.8:
+            return "detailed"
+        elif verbosity == "concise" or openness < 0.3:
+            return "concise"
+        else:
+            return "balanced"
+    
+    def _get_formality_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola il modificatore di formalità."""
+        formality = mood.get("formality", {}).get("state", "neutral")
+        
+        formality_map = {
+            "formal": "formal",
+            "casual": "casual",
+            "neutral": "semi-formal"
+        }
+        return formality_map.get(formality, "semi-formal")
+    
+    def _get_emotion_expression_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola quanto esprimere le emozioni."""
+        extraversion = personality.get("extraversion", 0.5)
+        neuroticism = personality.get("neuroticism", 0.3)
+        humor = mood.get("humor", {}).get("intensity", 0.5)
+        
+        expression_level = (extraversion * 0.5) + (neuroticism * 0.3) + (humor * 0.2)
+        
+        if expression_level > 0.7:
+            return "expressive"
+        elif expression_level < 0.3:
+            return "restrained"
+        else:
+            return "moderate"
+    
+    def _get_questions_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola la frequenza di domande."""
+        curiosity = personality.get("curiosity_drive", 0.5)
+        patience = mood.get("patience", {}).get("level", 0.7)
+        
+        if curiosity > 0.7 and patience > 0.5:
+            return "curious"
+        elif patience < 0.3:
+            return "direct"
+        else:
+            return "balanced"
+    
+    def _get_emoji_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola l'uso di emoji."""
+        extraversion = personality.get("extraversion", 0.5)
+        humor = mood.get("humor", {}).get("state", "neutral")
+        
+        if humor == "cheerful" and extraversion > 0.5:
+            return "frequent"
+        elif extraversion < 0.3:
+            return "minimal"
+        else:
+            return "moderate"
+    
+    def _get_greeting_modifier(self, personality: dict, mood: dict) -> str:
+        """Calcola lo stile di saluto."""
+        extraversion = personality.get("extraversion", 0.5)
+        formality = mood.get("formality", {}).get("state", "neutral")
+        energy = mood.get("energy", {}).get("level", 0.5)
+        
+        if formality == "formal":
+            return "formal"
+        elif extraversion > 0.7 and energy > 0.6:
+            return "enthusiastic"
+        elif extraversion < 0.3:
+            return "reserved"
+        else:
+            return "friendly"
+    
+    def _get_confidence_modifier(self, mood: dict) -> dict:
+        """Calcola gli indicatori di sicurezza."""
+        confidence = mood.get("confidence", {"level": 0.7, "trend": "stable"})
+        
+        if confidence["level"] > 0.8:
+            return {"style": "assertive", "hedging": "minimal"}
+        elif confidence["level"] < 0.4:
+            return {"style": "cautious", "hedging": "frequent"}
+        else:
+            return {"style": "balanced", "hedging": "occasional"}
+    
+    # ==================== MICRO EXPERIENCES ====================
+    
+    def add_micro_experience(self, comment: str, category: str = "general"):
+        """Aggiunge un commento/micro-esperienza alla memoria."""
+        if "micro_experiences" not in self.emotional_state:
+            self.emotional_state["micro_experiences"] = {
+                "recent_comments": [],
+                "interaction_count_today": 0,
+                "last_interaction_date": None,
+                "noted_patterns": []
+            }
+        
+        experiences = self.emotional_state["micro_experiences"]
+        
+        today = datetime.now().date().isoformat()
+        if experiences.get("last_interaction_date") != today:
+            experiences["interaction_count_today"] = 0
+            experiences["last_interaction_date"] = today
+        
+        experiences["interaction_count_today"] += 1
+        
+        experiences["recent_comments"].append({
+            "comment": comment,
+            "category": category,
+            "timestamp": datetime.now().isoformat(),
+            "interaction_count": experiences["interaction_count_today"]
+        })
+        
+        experiences["recent_comments"] = experiences["recent_comments"][-10:]
+    
+    def get_micro_experience_comment(self) -> str:
+        """Genera un commento basato sulle micro-esperienze."""
+        experiences = self.emotional_state.get("micro_experiences", {})
+        
+        if not experiences:
+            return ""
+        
+        count = experiences.get("interaction_count_today", 0)
+        recent = experiences.get("recent_comments", [])
+        
+        if not recent:
+            return ""
+        
+        last_comment = recent[-1]
+        time_since_last = datetime.now() - datetime.fromisoformat(last_comment["timestamp"])
+        
+        if count == 3:
+            return "È la terza interazione oggi, noto un pattern!"
+        elif count == 5:
+            return "Siamo a 5 interazioni oggi, sembra che tu sia attivo!"
+        elif count == 10:
+            return "Dieci interazioni! È una sessione intensa!"
+        elif time_since_last.total_seconds() > 3600 and count > 0:
+            return "È passato un po' di tempo dall'ultima volta!"
+        
+        return ""
+    
+    def record_user_reaction(self, user_response: str, emotion_context: str):
+        """Registra come l'utente ha reagito a un messaggio."""
+        if "emotional_memory" not in self.emotional_state:
+            self.emotional_state["emotional_memory"] = {"user_reaction_history": []}
+        
+        history = self.emotional_state["emotional_memory"].get("user_reaction_history", [])
+        
+        reaction = {
+            "timestamp": datetime.now().isoformat(),
+            "user_text": user_response[:200],
+            "emotion_context": emotion_context,
+            "response_length": len(user_response.split())
+        }
+        
+        history.append(reaction)
+        
+        self.emotional_state["emotional_memory"]["user_reaction_history"] = history[-20:]
 
 
 # CLI interface for testing

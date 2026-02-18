@@ -1,13 +1,13 @@
 ---
 name: emotions
-description: Advanced emotional intelligence system for OpenClaw with proactive behavior, human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, and performance analytics
-version: 1.3.0
+description: Advanced emotional intelligence system for OpenClaw with proactive behavior, human-like sentiment simulation, meta-cognitive awareness, mixed emotions, long-term memory, performance analytics, and living personality
+version: 1.4.0
 user-invocable: true
 metadata: {"always": true, "requires": {"config": ["emotion.enabled"]}}
 tools:
   - name: emotion_tool
     file: emotion_tool.py
-    description: Main command handler for emotional intelligence system with proactive capabilities
+    description: Main command handler for emotional intelligence system with proactive capabilities and living personality
 ---
 
 # Advanced Emotional Intelligence System for OpenClaw
@@ -50,7 +50,7 @@ Use these exact templates with the exec tool:
 
 Advanced emotional intelligence system that simulates complex human feelings and enables meta-cognitive self-awareness. The system uses machine learning to recognize behavioral patterns and adapt personality based on interactions.
 
-## Main Features
+## Main Features (v1.4.0)
 
 - **Complex Emotional Simulation**: Manages primary and complex emotions with composite states
 - **Advanced Machine Learning**: Neural network for pattern recognition and personality evolution
@@ -62,6 +62,10 @@ Advanced emotional intelligence system that simulates complex human feelings and
 - **Long-Term Memory**: Extended emotional memory with pattern analysis and seasonal trends
 - **Performance Correlations**: Analysis of relationships between emotions and system performance
 - **Web Dashboard**: Real-time monitoring interface with analytics and visualizations
+- **Living Personality**: AI has persistent moods that evolve (humor, energy, confidence, patience)
+- **Dynamic System Prompt**: Responses adapt based on emotional state and personality
+- **User Reaction Memory**: AI learns from how user responds to adapt communication style
+- **Micro-Experiences**: AI makes contextual comments based on interaction history
 
 ## Supported Emotional States
 
@@ -86,6 +90,23 @@ Advanced emotional intelligence system that simulates complex human feelings and
 - Emotional volatility (emotional_volatility)
 - Reflection depth (reflection_depth)
 - Introspective tendency (introspective_tendency)
+
+### Mental Mood System (NEW in v1.4.0)
+- **Humor**: cheerful, serious, neutral
+- **Energy**: high, medium, low
+- **Confidence**: confident, balanced, uncertain
+- **Formality**: formal, casual, neutral
+- **Verbosity**: verbose, concise, balanced
+- **Patience**: patient, direct, balanced
+- **Mood Streak**: Tracks consecutive same-mood interactions
+
+### Living Personality (NEW in v1.4.0)
+The AI now has a "living" personality that:
+- Adapts communication style based on emotional state
+- Remembers how the user reacted to previous messages
+- Makes contextual comments ("This is our 3rd interaction today!")
+- Changes greeting style based on energy and formality
+- Uses emojis proportionally to extraversion
 
 ## Available Commands
 
