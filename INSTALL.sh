@@ -340,15 +340,13 @@ else
     fi
 fi
 
-# Create configuration
+# Create or update configuration
 print_section "CONFIGURATION"
 
 CONFIG_FILE="$HOME/.openclaw/emotion_config.json"
 
-if [ ! -f "$CONFIG_FILE" ]; then
-    progress_start "Creating emotion_config.json"
-    cat > "$CONFIG_FILE" <<'JSON'
-{
+# Default configuration
+DEFAULT_CONFIG='{
   "enabled": true,
   "intensity": 0.7,
   "learning_rate": 0.5,
@@ -361,11 +359,101 @@ if [ ! -f "$CONFIG_FILE" ]; then
   "ml_update_frequency": 5,
   "prompt_modifier_enabled": true,
   "persistence_enabled": true
+}'
+
+check_and_update_config() {
+    local config_file="$1"
+    local temp_file="$config_file.tmp"
+    local needs_update=false
+    local missing_fields=()
+    
+    # Required fields
+    local required_fields=(
+        "enabled"
+        "intensity"
+        "learning_rate"
+        "volatility"
+        "meta_cognition_enabled"
+        "introspection_frequency"
+        "emotion_decay_rate"
+        "memory_depth"
+        "confidence_threshold"
+        "ml_update_frequency"
+        "prompt_modifier_enabled"
+        "persistence_enabled"
+    )
+    
+    # Check each required field
+    for field in "${required_fields[@]}"; do
+        if ! grep -q "\"$field\"" "$config_file" 2>/dev/null; then
+            missing_fields+=("$field")
+            needs_update=true
+        fi
+    done
+    
+    if [ "$needs_update" = true ]; then
+        log "Aggiornamento configurazione: campi mancanti rilevati"
+        for field in "${missing_fields[@]}"; do
+            info "  + $field"
+        done
+        
+        # Read existing config and add missing fields
+        python3 - "$config_file" <<'PYTHON_SCRIPT'
+import json
+import sys
+
+config_file = sys.argv[1]
+
+try:
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+except (json.JSONDecodeError, FileNotFoundError):
+    config = {}
+
+defaults = {
+    "enabled": True,
+    "intensity": 0.7,
+    "learning_rate": 0.5,
+    "volatility": 0.4,
+    "meta_cognition_enabled": True,
+    "introspection_frequency": 0.3,
+    "emotion_decay_rate": 0.1,
+    "memory_depth": 100,
+    "confidence_threshold": 0.6,
+    "ml_update_frequency": 5,
+    "prompt_modifier_enabled": True,
+    "persistence_enabled": True
 }
-JSON
-    progress_done "Configuration created"
+
+for key, value in defaults.items():
+    if key not in config:
+        config[key] = value
+
+with open(config_file, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print("Configuration updated successfully")
+PYTHON_SCRIPT
+        
+        if [ $? -eq 0 ]; then
+            progress_done "Configurazione aggiornata"
+        else
+            warning "Errore aggiornamento configurazione, ricreazione..."
+            echo "$DEFAULT_CONFIG" > "$config_file"
+            progress_done "Configurazione ricreata"
+        fi
+    else
+        info "Configurazione aggiornata"
+    fi
+}
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    progress_start "Creazione emotion_config.json"
+    echo "$DEFAULT_CONFIG" > "$CONFIG_FILE"
+    progress_done "Configurazione creata"
 else
-    info "Configuration already exists"
+    info "Configurazione esistente rilevata"
+    check_and_update_config "$CONFIG_FILE"
 fi
 
 # ═══════════════════════════════════════════════════════════════════════════

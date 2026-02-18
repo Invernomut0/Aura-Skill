@@ -535,7 +535,14 @@ def handle_emotions_command(args: List[str]) -> str:
                 output.append(f"Learning Rate: {config.get('learning_rate', 'Unknown')}")
                 output.append(f"Volatility: {config.get('volatility', 'Unknown')}")
                 output.append(f"Meta-Cognition: {config.get('meta_cognition_enabled', 'Unknown')}")
-                output.append(f"Prompt Modifier: {config.get('prompt_modifier_enabled', 'Unknown')}")
+                
+                prompt_modifier = config.get('prompt_modifier_enabled')
+                if prompt_modifier is None:
+                    output.append("Prompt Modifier: ⚠️ Non configurato (esegui INSTALL.sh)")
+                elif prompt_modifier:
+                    output.append("Prompt Modifier: ✅ Attivo")
+                else:
+                    output.append("Prompt Modifier: ❌ Disattivato")
 
                 return '\n'.join(output)
             else:
