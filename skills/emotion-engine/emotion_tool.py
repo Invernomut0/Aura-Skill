@@ -8,7 +8,7 @@ import sys
 import json
 import os
 import logging
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 import argparse
 import random
 from datetime import datetime, timedelta
