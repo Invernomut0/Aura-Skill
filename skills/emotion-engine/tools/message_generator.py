@@ -199,6 +199,11 @@ class LLMMessageGenerator:
                 "Spero ti faccia sorridere! 😊",
                 "Fammi ridere anche te! 😂"
             ],
+            "balanced": [
+                "Fammi sapere cosa ne pensi.",
+                "Aspetto il tuo feedback.",
+                "Che ne dici?"
+            ],
             "serious": [
                 "Attendo il tuo parere professionale.",
                 "Fammi sapere la tua valutazione.",
@@ -483,7 +488,7 @@ class LLMMessageGenerator:
         
         return " ".join(content_parts)
     
-    def _generate_excitement_content(self, topics: list, tasks: list, intensity: float) -> list:
+    def _generate_excitement_content(self, topics: list, tasks: list, intensity: float, modifiers: dict = None) -> list:
         """Genera contenuto per emozione excitement."""
         parts = []
         
@@ -505,7 +510,7 @@ class LLMMessageGenerator:
         
         return parts
     
-    def _generate_anticipation_content(self, topics: list, tasks: list) -> list:
+    def _generate_anticipation_content(self, topics: list, tasks: list, modifiers: dict = None) -> list:
         """Genera contenuto per emozione anticipation."""
         parts = []
         
@@ -522,7 +527,7 @@ class LLMMessageGenerator:
         
         return parts
     
-    def _generate_curiosity_content(self, topics: list, tasks: list, pending: list) -> list:
+    def _generate_curiosity_content(self, topics: list, tasks: list, pending: list, modifiers: dict = None) -> list:
         """Genera contenuto per emozione curiosity."""
         parts = []
         
@@ -542,7 +547,7 @@ class LLMMessageGenerator:
         
         return parts
     
-    def _generate_flow_content(self, tasks: list, intensity: float) -> list:
+    def _generate_flow_content(self, tasks: list, intensity: float, modifiers: dict = None) -> list:
         """Genera contenuto per emozione flow_state."""
         parts = []
         
@@ -559,7 +564,7 @@ class LLMMessageGenerator:
         
         return parts
     
-    def _generate_confusion_content(self, pending: list, topics: list) -> list:
+    def _generate_confusion_content(self, pending: list, topics: list, modifiers: dict = None) -> list:
         """Genera contenuto per emozione confusion."""
         parts = []
         
@@ -576,7 +581,7 @@ class LLMMessageGenerator:
         
         return parts
     
-    def _generate_fallback_content(self, emotion: str, topics: list) -> str:
+    def _generate_fallback_content(self, emotion: str, topics: list, modifiers: dict = None) -> str:
         """Genera contenuto di fallback quando non c'è contesto specifico."""
         if emotion == "excitement":
             return "Sono carico di energia positiva e vorrei condividere questo entusiasmo! Hai novità interessanti da raccontarmi?"
