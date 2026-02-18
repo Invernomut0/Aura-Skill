@@ -61,6 +61,7 @@ interface EmotionConfig {
   max_volatility: number;
   prompt_modifier_enabled: boolean;
   persistence_enabled: boolean;
+  debug_mode: boolean;
 }
 
 type HookHandler = (event: {
@@ -113,7 +114,8 @@ function loadEmotionConfig(): EmotionConfig {
     ml_update_frequency: 5,
     backup_frequency: 10,
     max_volatility: 0.8,
-    persistence_enabled: true
+    persistence_enabled: true,
+    debug_mode: false
   };
 
   try {
@@ -215,9 +217,65 @@ function generateEmotionalPrompt(state: EmotionalState, config: EmotionConfig): 
     components.push(getFrustrationBehavior());
   }
   
+  // Aggiungi debug info se attivo
+  if (config.debug_mode) {
+    const debugInfo = generateDebugInfo(state);
+    if (debugInfo) {
+      components.push(debugInfo);
+    }
+  }
+  
   if (components.length === 0) return '';
   
   return composePrompt(components);
+}
+
+function generateDebugInfo(state: EmotionalState): string {
+  const primary = state.dominant_emotions.primary;
+  const complex = state.dominant_emotions.complex;
+  
+  const emojiMap: Record<string, string> = {
+    joy: '😊', sadness: '😢', anger: '😠', fear: '😨',
+    surprise: '😮', disgust: '🤢', curiosity: '🤔', trust: '🤝',
+    excitement: '🎉', frustration: '😤', satisfaction: '😌',
+    confusion: '😕', anticipation: '⏳', pride: '😌',
+    empathy: '🤗', flow_state: '🌊'
+  };
+  
+  const primaryEmoji = emojiMap[primary.emotion] || '😐';
+  const complexEmoji = emojiMap[complex.emotion] || '😐';
+  
+  // Genera il system prompt che verrebbe applicato
+  const promptComponents: string[] = [];
+  
+  if (primary.intensity > 0.25) {
+    const behavior = getPrimaryBehavior(primary.emotion, primary.intensity);
+    promptComponents.push(behavior.instruction);
+  }
+  
+  if (complex.intensity > 0.25) {
+    const complexBehavior = getComplexBehavior(complex.emotion, complex.intensity);
+    promptComponents.push(complexBehavior);
+  }
+  
+  const systemPromptPreview = promptComponents.slice(0, 3).join(' | ');
+  
+  return `
+---
+**🎭 DEBUG EMOTIVO** (modalità sviluppatore)
+
+📊 *Stato Corrente:*
+• Emozione primaria: ${primaryEmoji} **${primary.emotion}** (${Math.round(primary.intensity * 100)}%)
+• Emozione complessa: ${complexEmoji} **${complex.emotion}** (${Math.round(complex.intensity * 100)}%)
+• Sessione: \`${state.session_id}\`
+
+📝 *System Prompt Applicato:*
+\`\`\`
+${systemPromptPreview || 'Nessun prompt emotivo attivo'}
+\`\`\`
+
+---
+`;
 }
 
 function getPrimaryBehavior(emotion: string, intensity: number): string {
