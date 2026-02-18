@@ -6,3 +6,4 @@ skills/emotion-engine/utils/__pycache__/sentiment_analyzer.cpython-312.pyc
 skills/emotion-engine/tools/__pycache__/emotion_ml_engine.cpython-312.pyc
 *.pyc
 __pycache__/
+skills/emotion-engine/.DS_Store

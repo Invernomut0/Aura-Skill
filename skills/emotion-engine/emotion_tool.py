@@ -732,16 +732,31 @@ def handle_emotions_command(args: List[str]) -> str:
             # Resolve alias
             actual_emotion = valid_emotions[emotion]
             
-            # Get engine and apply simulation
-            state = engine.get_emotional_state()
+            # Get engine and apply simulation - modify directly
+            engine.emotional_state['simulation_mode'] = True
+            engine.emotional_state['simulation_emotion'] = actual_emotion
             
-            # Temporarily set the emotion
-            if actual_emotion in state['primary_emotions']:
-                state['primary_emotions'][actual_emotion] = intensity
+            # Set the emotion directly in the engine's state
+            if actual_emotion in engine.emotional_state['primary_emotions']:
+                engine.emotional_state['primary_emotions'][actual_emotion] = intensity
+                # Lower other emotions to make this one dominant
+                for emo in engine.emotional_state['primary_emotions']:
+                    if emo != actual_emotion:
+                        engine.emotional_state['primary_emotions'][emo] = max(0.05, engine.emotional_state['primary_emotions'].get(emo, 0.1) * 0.3)
                 message = f"✅ Simulating {actual_emotion} at intensity {intensity:.2f}"
-            elif actual_emotion in state['complex_emotions']:
-                state['complex_emotions'][actual_emotion] = intensity
+            elif actual_emotion in engine.emotional_state['complex_emotions']:
+                engine.emotional_state['complex_emotions'][actual_emotion] = intensity
+                # Lower other complex emotions
+                for emo in engine.emotional_state['complex_emotions']:
+                    if emo != actual_emotion:
+                        engine.emotional_state['complex_emotions'][emo] = max(0.05, engine.emotional_state['complex_emotions'].get(emo, 0.1) * 0.3)
                 message = f"✅ Simulating {actual_emotion} (complex) at intensity {intensity:.2f}"
+            
+            # Save the simulated state
+            try:
+                engine._save_persistent_state()
+            except Exception as e:
+                logger.warning(f"Could not save simulated state: {e}")
             
             output = ["🎭 Emotion Simulation", "=" * 25]
             output.append(message)
