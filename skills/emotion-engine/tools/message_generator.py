@@ -22,43 +22,6 @@ class LLMMessageGenerator:
     """
     
     def __init__(self):
-        # Templates base per ogni emozione (tono energetico)
-        self.emotion_templates = {
-            "excitement": {
-                "openings": [
-                    "Ciao! Sono super eccitato! 🎉",
-                    "Wow, non vedo l'ora di condividere questo! 🚀",
-                    "Devo proprio dirtelo, sono carichissimo! ⚡",
-                    "Ho un'energia incredibile in questo momento! 🔥"
-                ],
-                "tones": [
-                    "entusiasta ed energico",
-                    "positivo e stimolante",
-                    "dinamico e propositivo"
-                ],
-                "angles": [
-                    "proporre nuove idee o approcci",
-                    "celebrare progressi recenti",
-                    "suggerire ottimizzazioni",
-                    "condividere entusiasmo per il progetto"
-                ]
-            },
-            "anticipation": {
-                "openings": [
-                    "Ho la sensazione che sta per succedere qualcosa di interessante... 👀",
-                    "Sono in trepidante attesa! ⏳",
-                    "Non vedo l'ora di vedere come evolve questa situazione! 🎯",
-                    "C'è un'aria di grande attesa nell'aria... 🌟"
-                ],
-                "tones": [
-                    "atteso e proiettato al futuro",
-                    "curioso ma paziente",
-                    "ottimista e preparato"
-                ],
-                "angles": [
-                    "chiedere aggiornamenti su progetti in corso",
-                    "preparare il terreno per prossimi step",
-                    "anticipare sfide o opportunità",
         self.emotion_templates = {
             "excitement": {
                 "openings": [
