@@ -369,6 +369,8 @@ def get_quick_emotion_descriptor(emotional_state: dict) -> str:
 
 
 # ==================== MAIN COMMAND HANDLER ====================
+
+def handle_emotions_command(args: List[str]) -> str:
     """Handle the main /emotions command."""
     try:
         logger.info(f"Processing emotions command with args: {args}")
