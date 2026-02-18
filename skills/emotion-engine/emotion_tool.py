@@ -239,15 +239,37 @@ def handle_emotions_command(args: List[str]) -> str:
 
         # Dashboard command doesn't need the engine
         if len(args) > 0 and args[0] == 'dashboard':
+            # Check if server is already running
+            import socket
+            port = WEB_DASHBOARD['port']
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            is_running = sock.connect_ex(('localhost', port)) == 0
+            sock.close()
+            
+            if is_running:
+                # Server already running, just return the URL
+                output = ["🌐 Web Dashboard Active", "=" * 25]
+                output.append(f"Dashboard is running at: http://{WEB_DASHBOARD['host']}:{port}")
+                output.append("")
+                output.append("Available endpoints:")
+                for endpoint, description in WEB_DASHBOARD['endpoints'].items():
+                    output.append(f"  {endpoint} - {description}")
+                output.append("")
+                output.append("The server is already running. Open the URL above in your browser.")
+                
+                update_emotions_from_interaction("dashboard", original_args, True)
+                return '\n'.join(output)
+            
             # Start web dashboard server
             try:
                 server_thread = start_dashboard_server()
                 if server_thread and server_thread.is_alive():
-                    output = ["🌐 Web Dashboard Active", "=" * 25]
-                    output.append(f"Dashboard is running at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
-                else:
                     output = ["🌐 Web Dashboard Started", "=" * 25]
                     output.append(f"Dashboard server started at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
+                else:
+                    output = ["🌐 Web Dashboard Status", "=" * 25]
+                    output.append(f"Dashboard may be running at: http://{WEB_DASHBOARD['host']}:{WEB_DASHBOARD['port']}")
 
                 output.append("")
                 output.append("Available endpoints:")
