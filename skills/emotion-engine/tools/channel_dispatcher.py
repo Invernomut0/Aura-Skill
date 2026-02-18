@@ -156,7 +156,7 @@ class ChannelDispatcher:
             escaped_message = message.replace('"', '\\"')
             
             # Comando per inviare messaggio con target
-            cmd = f'openclaw message send --channel telegram --target "{target}" --text "{escaped_message}"'
+            cmd = f'openclaw message send --channel telegram --target "{target}" --message "{escaped_message}"'
             
             logger.info(f"Invio messaggio Telegram: {message[:50]}...")
             
@@ -235,7 +235,7 @@ class ChannelDispatcher:
             escaped_message = message.replace('"', '\\"')
             
             # Comando per inviare messaggio con target
-            cmd = f'openclaw message send --channel whatsapp --target "{target}" --text "{escaped_message}"'
+            cmd = f'openclaw message send --channel whatsapp --target "{target}" --message "{escaped_message}"'
             
             logger.info(f"Invio messaggio WhatsApp: {message[:50]}...")
             
